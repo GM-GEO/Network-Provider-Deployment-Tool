@@ -1,0 +1,7 @@
+name,type,value,description,group
+LAB_POD5_AD_SRVR_TEST_AB-E,host,10.255.27.48,LAB Pod 5 AD_TEST_- Server,LAB_SERVERS_E
+LAB_DMZ_E,network,10.255.28.0/24,Lab DMZ,LAB_NETWORKS_B_E
+Win_Update_URL_1_W,url,https://*.windowsupdate.microsoft.com,Windows update URL 1,WINDOWS_UPDATE_URLS_E
+LAB_POD5_NW_Z,network,10.255.27.0/24,LAB Pod 5 Network,POD_NETWORKS_Z
+LAB_DMZ_H,network,10.255.28.0/24,Lab DMZ,LAB_NETWORKS_Z
+LAB_WIFI_G,network,10.255.28.0/24,Lab DMZ_,LAB_NETWORKS_
