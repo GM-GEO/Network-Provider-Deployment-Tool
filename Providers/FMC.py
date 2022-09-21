@@ -4,6 +4,9 @@ from collections import OrderedDict
 
 
 class FMC:
+    """
+    Deals with the entire script and brings every component together
+    """
     def __init__(self, ipAddress):
 
         self.fmcIP = ipAddress
