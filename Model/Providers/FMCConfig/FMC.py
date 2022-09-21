@@ -1,36 +1,27 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from collections import OrderedDict
+from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, AllGroupObjects, AllNetworksObject
+from Model.Providers.Provider import Provider
+from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
 
-
-class FMC:
+class FMC(Provider):
     def __init__(self, ipAddress):
 
         self.fmcIP = ipAddress
         self.apiToken = self.requestToken()
 
-        self.hostObjectList = []
-        self.networkObjectList = []
-        self.objectGroupList = []
-        self.URLObjectList = []
-        self.FQDNObjectList = []
         self.portObjectList = self.__getPortObjects()
         self.securityZoneObjectList = self.__getSecurityZones()
         self.filePolicyObjectList = self.__getFilePolicies()
         self.urlCategoryObjectList = self.__getURLCategories()
         self.applicationObjectList = self.__getApplications()
-
-        # self.allNetworkGroupObjectList = self.__getAllNetworkGroups()
-        #
-        #
+        self.allNetworkGroupObjectList = self.__getAllNetworkGroups()
         self.allNetworkObjectList = self.__getAllNetworks()
         self.allGroupsList = self.__getAllGroups()
-        # self.allUrlGroupList = self.__getAllUrlGroups()
-        # self.allGroupObjectList = self.__getAllGroups()
+        self.allUrlGroupList = self.__getAllUrlGroups()
         self.allUrlObjectList = self.__getAllUrls()
         self.allHostObjectList = self.__getAllHosts()
-
-        # self.allNetworkObjectList = []
 
         return None
 
@@ -50,31 +41,26 @@ class FMC:
         hostObj = Host.HostObject(
             domain, name, value, description, group, self.fmcIP)
 
-        result = self.hostObjectList.append(hostObj)
-
-        return self.hostObjectList
+        return self.hostObjectList.append(hostObj)
 
     def __addNetwork(self, domain, name, value, description='', group=''):
 
         networkObj = Network.NetworkObject(
             domain, name, value, description, group, self.fmcIP)
-        result = self.networkObjectList.append(networkObj)
-        return result
+        return self.networkObjectList.append(networkObj)
 
     def __addURL(self, domain, name, url, description='', group=''):
 
         urlObj = URL.URLObject(
             domain, name, url, description, group, self.fmcIP)
-        result = self.URLObjectList.append(urlObj)
-
-        return result
+        return self.URLObjectList.append(urlObj)
 
     def __addFQDN(self, domain, name, value, description='', group=''):
 
-        result = self.FQDNObjectList.append(FQDN.FQDNObject(
-            domain, name, value, description, group, self.fmcIP))
+        fqdnObj = FQDN.FQDNObject(
+            domain, name, value, description, group, self.fmcIP)
 
-        return result
+        return self.FQDNObjectList.append(fqdnObj)
 
     def __createGroupMembershipLists(self, type):
 

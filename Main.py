@@ -1,10 +1,10 @@
 import os
 
-from Providers import FMC
 from datetime import datetime
-from Utilities.FileUtils import checkValidFileExtension
-from Utilities.FileUtils import readCSVFromFile
-from Utilities.LoggingUtils import *
+from Model.Providers.FMCConfig.FMC import FMC
+from Model.Utilities.FileUtils import *
+from Model.Utilities.LoggingUtils import *
+from Model.Providers.Provider import *
 
 
 def main():
@@ -16,6 +16,12 @@ def main():
     objectFile = ''
     ruleFile = ''
     connectionIP = ''
+    serviceProvider = ''
+
+    while not checkServiceProvider(serviceProvider):
+        log.info("Select a Network Provider: ")
+        log.info(ServiceProvider.list())
+        serviceProvider = str(input())
 
     while not checkValidFileExtension(objectFile):
         log.info("Select the Object file (supported extensions: .csv): ")
