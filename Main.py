@@ -44,7 +44,6 @@ def main():
                          object['name'],
                          object['value'],
                          group=object['group'])
-        # print("____________________________________________")
 
     Logger_AddBreakLine()
 
