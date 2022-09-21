@@ -35,58 +35,39 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
 
-    log.info("Enter FMC IP Address:")
-    connectionIP = str(input())
+    if serviceProvider == ServiceProvider.PALOALTO.value:
+        pass
+    elif serviceProvider == ServiceProvider.FMC.value:
+        log.info("Enter FMC IP Address:")
+        connectionIP = str(input())
+        labFMC = FMC(connectionIP)
 
-    labFMC = FMC(connectionIP)
-    #
-    parsedObjectCSV = readCSVFromFile(objectFile)
-    parsedRuleCSV = readCSVFromFile(ruleFile)
-    #
-    #
-    for index, object in parsedObjectCSV.items():
-        labFMC.addObject('e276abec-e0f2-11e3-8169-6d9ed49b625f',
-                         object['type'],
-                         object['name'],
-                         object['value'],
-                         group=object['group'])
+        parsedObjectCSV = readCSVFromFile(objectFile)
+        parsedRuleCSV = readCSVFromFile(ruleFile)
 
-    Logger_AddBreakLine()
+        Logger_AddBreakLine()
 
-    # print("Get Object List: ", labFMC.getObjectList('host'))
-    #
-    # print("Apply result: ", labFMC.applyObjectList("host"))
-    # print("Creating group: ", labFMC.createGroups('host'))
+        for index, object in parsedObjectCSV.items():
+            labFMC.addObject('e276abec-e0f2-11e3-8169-6d9ed49b625f',
+                             object['type'],
+                             object['name'],
+                             object['value'],
+                             group=object['group'])
 
-    log.info("Get Object List: ", labFMC.getObjectList('network'))
+        log.info("Get Object List: ", labFMC.getObjectList("network"))
+        log.info("Apply result: ", labFMC.applyObjectList("network"))
+        log.info("Creating group: ", labFMC.createGroups("network"))
+        log.info("Get Object List: ", labFMC.getObjectList("url"))
+        log.info("Apply result: ", labFMC.applyObjectList("url"))
+        log.info("Creating group: ", labFMC.createGroups("url"))
 
-    log.info("Apply result: ", labFMC.applyObjectList("network"))
-    log.info("Creating group: ", labFMC.createGroups('network'))
+        Logger_AddBreakLine()
 
-    log.info("Get Object List: ", labFMC.getObjectList('url'))
+        for index, rule in parsedRuleCSV.items():
+            result = labFMC.createAccessRule(rule)
+            log.info("Rule creation: ", result)
 
-    log.info("Apply result: ", labFMC.applyObjectList("url"))
-    log.info("Creating group: ", labFMC.createGroups('url'))
-
-    # print("Get Object List: ", labFMC.getObjectList('fqdn'))
-    #
-    # print("Apply result: ", labFMC.applyObjectList("fqdn"))
-    # print("Creating group: ", labFMC.createGroups('fqdn'))
-    #
-    # print("Ports: ", labFMC.getObjectList('port'))
-    # print("Networks: ", labFMC.getObjectList('network'))
-
-    # n = labFMC.getObjectList('network')
-    # print("N: ", n[-1].getName(), " ", n[-1].getID())
-
-    # print(labFMC.geturlCat())
-
-    #
-    for index, rule in parsedRuleCSV.items():
-        result = labFMC.createAccessRule(rule)
-        log.info("Rule creation: ", result)
-
-    #
+        pass
 
 
 if __name__ == '__main__':
