@@ -61,12 +61,24 @@ class FMC(Provider):
         We will need to extract these username/password values and either read them from user input or a security key file
         Can we pull the domain ID from this auth request and set it by default?
         """
-        response = requests.post(
-            'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken',
-            auth=HTTPBasicAuth('apiuser', 'JR8A54gWFc&#IVxIvoP91@0mWhQ51'),
-            data={},
-            verify=False
-        )
+        response = requests.Response
+        url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
+
+        for i in range(0,5):
+            while True:
+                try:
+                    response = requests.post(
+                        url,
+                        auth=HTTPBasicAuth('apiuser', 'JR8A54gWFc&#IVxIvoP91@0mWhQ51'),
+                        data={},
+                        verify=False
+                    )
+                except Exception:
+                    self.logger.info("Token request timed out. {Retry Count:"+ i +"}")
+                    continue
+                break
+
+
 
         if response.headers['DOMAIN_UUID']:
             self.domainId = response.headers['DOMAIN_UUID']
