@@ -77,12 +77,23 @@ class FMC(Provider):
         return response.headers['X-auth-access-token']
 
     def __addHost(self, name:str, value:str, description='', group=''):
+        """Creates a Host object with the FMC constructor and adds it to the Host Object List
+
+        Args:
+            name (str): The name of the host to be added
+            value (str): The value for the host object
+            description (str, optional): The description to be added to the Host object. Defaults to ''.
+            group (str, optional): The name of a Host Group in FMC to add. Defaults to ''.
+
+        Returns:
+            None: _description_
+        """
 
         hostObj = Host.HostObject.FMCHost(self, name, value, description, group)
         self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
         return self.hostObjectList.append(hostObj)
 
-    def __addNetwork(self, domain, name, value, description='', group=''):
+    def __addNetwork(self, domain: str, name: str, value: str, description='', group=''):
 
         networkObj = Network.NetworkObject(
             domain, name, value, description, group, self.fmcIP)
