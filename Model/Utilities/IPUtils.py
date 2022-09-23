@@ -13,10 +13,11 @@ def checkValidIPAddress(IPAddress: str):
     """
     log = Logger_GetLogger()
     ValidIPAddress = False
-    try:
-        ipaddress.ip_address(IPAddress)
-        ValidIPAddress = True
-    except ValueError:
-        log.info('address/netmask is invalid: %s' % IPAddress)
+    if IPAddress:
+        try:
+            ipaddress.ip_address(IPAddress)
+            ValidIPAddress = True
+        except ValueError:
+            log.info('address/netmask is invalid: %s' % IPAddress)
 
     return ValidIPAddress

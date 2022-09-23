@@ -64,7 +64,7 @@ class FMC(Provider):
         response = requests.Response
         url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
 
-        for i in range(0,5):
+        for i in range(3):
             while True:
                 try:
                     response = requests.post(
@@ -74,8 +74,16 @@ class FMC(Provider):
                         verify=False
                     )
                 except Exception:
-                    self.logger.info("Token request timed out. {Retry Count:"+ i +"}")
+                    self.logger.info("Token request timed out. {Retry Count:"+ str(i+1) +"}")
                     continue
+                finally:
+                    """
+                    If i is equal to our range - 1, then stop retrying and stop the tool.
+                    Range i value will be: 0, 1, 2 which is why we are checking for i == 2
+                    """
+                    if i == 2:
+                        self.logger.info("Maximum Token Requests Tried. Stopping Tool.")
+                        exit()
                 break
 
 
