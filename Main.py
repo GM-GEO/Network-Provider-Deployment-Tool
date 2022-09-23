@@ -4,6 +4,7 @@ from datetime import datetime
 from Model.Providers.FMCConfig.FMC import FMC
 from Model.Utilities.FileUtils import *
 from Model.Utilities.LoggingUtils import *
+from Model.Utilities.IPUtils import *
 from Model.Providers.Provider import *
 
 
@@ -15,12 +16,12 @@ def main():
                             datetime.now().strftime("%b-%d-%Y-%H-%M-%S")))
     objectFile = ''
     ruleFile = ''
-    connectionIP = ''
     serviceProvider = ''
+    ipAddress = ''
 
     while not checkServiceProvider(serviceProvider):
         log.info("Select a Network Provider: ")
-        log.info(ServiceProvider.list())
+        log.info(ProviderEnum.list())
         serviceProvider = str(input())
 
     while not checkValidFileExtension(objectFile):
@@ -35,12 +36,14 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
 
-    if serviceProvider == ServiceProvider.PALOALTO.value:
+    if serviceProvider == ProviderEnum.PALOALTO.value:
         pass
-    elif serviceProvider == ServiceProvider.FMC.value:
-        log.info("Enter FMC IP Address:")
-        connectionIP = str(input())
-        labFMC = FMC(connectionIP)
+    elif serviceProvider == ProviderEnum.FMC.value:
+        while not checkValidIPAddress(ipAddress):
+            log.info("Enter FMC IP Address: ")
+            ipAddress = str(input())
+
+        labFMC = FMC(ipAddress)
 
         parsedObjectCSV = readCSVFromFile(objectFile)
         parsedRuleCSV = readCSVFromFile(ruleFile)
@@ -48,7 +51,7 @@ def main():
         Logger_AddBreakLine()
 
         for index, object in parsedObjectCSV.items():
-            labFMC.addObject('e276abec-e0f2-11e3-8169-6d9ed49b625f',
+            labFMC.addObject(labFMC.domainId,
                              object['type'],
                              object['name'],
                              object['value'],

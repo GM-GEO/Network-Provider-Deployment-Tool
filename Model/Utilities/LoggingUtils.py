@@ -21,3 +21,6 @@ def Create_Logger(logPath, fileName):
 def Logger_AddBreakLine():
     rootLogger = logging.getLogger()
     rootLogger.info("*****************************************************")
+
+def Logger_GetLogger():
+    return logging.getLogger()

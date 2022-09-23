@@ -1,10 +1,9 @@
 from collections import OrderedDict
-import logging
-
+from Model.Utilities.LoggingUtils import Logger_GetLogger
 
 def checkValidFileExtension(filename):
+    log = Logger_GetLogger();
     validFileType = False
-    log = logging.getLogger()
 
     if filename:
         if filename.lower().endswith(".csv"):

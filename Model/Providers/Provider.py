@@ -1,5 +1,7 @@
 from enum import Enum
-import logging
+from tokenize import String
+from Model.Utilities.LoggingUtils import Logger_GetLogger
+from Model.Utilities.ExtendedEnum import ExtendedEnum
 
 
 class Provider:
@@ -29,24 +31,52 @@ class Provider:
 
 def checkServiceProvider(serviceProvider):
     validServiceProvider = False
-    log = logging.getLogger()
+    log = Logger_GetLogger()
 
-    if serviceProvider in ServiceProvider.list() :
+    if serviceProvider in ProviderEnum.list():
         validServiceProvider = True
-        log.info("Service Provider Selected. {Service Provider:" + serviceProvider + "}")
+        log.info("Service Provider Selected. {Service Provider:" +
+                 serviceProvider + "}")
     else:
         validServiceProvider = False
 
     return validServiceProvider
 
 
-class ExtendedEnum(Enum):
+def buildUrlForResource(IpAddress, domainLocation, domainId, resourceLocation,
+                        id):
+    """Build an https prefixed resource endpoint to use for CRUD operations
 
-    @classmethod
-    def list(cls):
-        return list(map(lambda c: c.value, cls))
+    Args:
+        IpAddress (string): The address of the service provider
+        domainLocation (string): The domain configuration
+        domainId (string): The GUID of the domain that is being targeted
+        resourceLocation (string): The location of the resource group
+        id (string): The guid of the specific item being retrieved
+
+    Returns:
+        string: the fully qualified URL resource
+    """
+    return 'https://' + IpAddress + \
+            domainLocation + domainId + resourceLocation + id
 
 
-class ServiceProvider(ExtendedEnum):
+def buildUrlForResource(IpAddress: str, domainLocation: str, domainId: str, resourceLocation: str):
+    """Build an https prefixed resource endpoint to use for CRUD operations
+
+    Args:
+        IpAddress (string): The address of the service provider
+        domainLocation (string): The domain configuration
+        domainId (string): The GUID of the domain that is being targeted
+        resourceLocation (string): The location of the resource group
+
+    Returns:
+        string: the fully qualified URL resource
+    """
+    return 'https://' + IpAddress + \
+            domainLocation + domainId + resourceLocation
+
+
+class ProviderEnum(ExtendedEnum):
     FMC = 'FMC'
     PALOALTO = 'Palo Alto'
