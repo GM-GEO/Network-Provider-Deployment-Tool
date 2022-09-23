@@ -44,6 +44,7 @@ class FMC(Provider):
 
         self.networkLocation = "/object/networks/"
         self.networkGroupLocation = "/object/networkgroups/"
+        self.urlLocation = "/object/urls"
         self.urlGroupLocation = "/object/urlgroups/"
         self.securityZoneLocation = "/object/securityzones/"
         self.portLocation = "/object/ports/"
@@ -69,11 +70,13 @@ class FMC(Provider):
 
         if response.headers['DOMAIN_UUID']:
             self.domainId = response.headers['DOMAIN_UUID']
+            self.logger.info("Domain Id found and set")
             pass
 
+        self.logger.info("Auth token found and set")
         return response.headers['X-auth-access-token']
 
-    def __addHost(self, domain, name, value, description='', group=''):
+    def __addHost(self, name:str, value:str, description='', group=''):
 
         hostObj = Host.HostObject.FMCHost(self, name, value, description, group)
         self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
@@ -291,7 +294,7 @@ class FMC(Provider):
     def addObject(self, domain, type, name, value, description='', group=''):
 
         if type == 'host':
-            self.__addHost(domain, name, value, description, group)
+            self.__addHost(name, value, description, group)
 
         elif type == 'network':
             self.__addNetwork(domain, name, value, description, group)
@@ -571,13 +574,12 @@ class FMC(Provider):
         return returnList
 
     def __getAllNetworks(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networks/'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation)
 
         networks = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -587,13 +589,12 @@ class FMC(Provider):
         for cat in networks:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networks/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             network = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeader
                 verify=False
             )
 
@@ -604,12 +605,11 @@ class FMC(Provider):
         return returnList
 
     def __getAllUrls(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urls'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation)
+
         networks = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -619,9 +619,8 @@ class FMC(Provider):
         for cat in urls:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urls/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             network = requests.get(
                 url=newURL,
@@ -635,12 +634,11 @@ class FMC(Provider):
         return returnList
 
     def __getAllHosts(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/hosts'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation)
+
         hosts = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -650,13 +648,12 @@ class FMC(Provider):
         for cat in hosts:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/hosts/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             host = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeader,
                 verify=False
             )
 
