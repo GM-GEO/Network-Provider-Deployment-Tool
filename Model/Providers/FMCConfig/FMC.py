@@ -1,80 +1,137 @@
 import requests
 from requests.auth import HTTPBasicAuth
-from collections import OrderedDict
+from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, AllGroupObjects, AllNetworksObject
+from Model.Providers.Provider import Provider, buildUrlForResource
+from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
+from Model.Utilities.LoggingUtils import Logger_GetLogger
 
-
-class FMC:
+class FMC(Provider):
     def __init__(self, ipAddress):
+        """Creates the FMC provider with the lists of objects and resource locations
+
+        Args:
+            ipAddress (string): The ID Address of the provider
+
+        Notes:
+            The domainId attribute is set as part of the self.requestToken() call made
+            by the self.apiToken istantiation.
+
+        Returns:
+            FMC: An FMC object
+        """
+        self.logger = Logger_GetLogger()
 
         self.fmcIP = ipAddress
-        self.apiToken = self.requestToken()
 
-        self.hostObjectList = []
-        self.networkObjectList = []
-        self.objectGroupList = []
-        self.URLObjectList = []
-        self.FQDNObjectList = []
+        self.apiToken = self.requestToken()
+        self.domainId = ""
+
         self.portObjectList = self.__getPortObjects()
         self.securityZoneObjectList = self.__getSecurityZones()
         self.filePolicyObjectList = self.__getFilePolicies()
         self.urlCategoryObjectList = self.__getURLCategories()
         self.applicationObjectList = self.__getApplications()
-
-        # self.allNetworkGroupObjectList = self.__getAllNetworkGroups()
-        #
-        #
+        self.allNetworkGroupObjectList = self.__getAllNetworkGroups()
         self.allNetworkObjectList = self.__getAllNetworks()
         self.allGroupsList = self.__getAllGroups()
-        # self.allUrlGroupList = self.__getAllUrlGroups()
-        # self.allGroupObjectList = self.__getAllGroups()
+        self.allUrlGroupList = self.__getAllUrlGroups()
         self.allUrlObjectList = self.__getAllUrls()
         self.allHostObjectList = self.__getAllHosts()
 
-        # self.allNetworkObjectList = []
+        self.authHeader = {"X-auth-access-token": self.apiToken}
+
+        self.domainLocation = "/api/fmc_config/v1/domain/"
+
+        self.networkLocation = "/object/networks/"
+        self.networkGroupLocation = "/object/networkgroups/"
+        self.urlLocation = "/object/urls"
+        self.urlGroupLocation = "/object/urlgroups/"
+        self.securityZoneLocation = "/object/securityzones/"
+        self.portLocation = "/object/ports/"
+        self.urlCategoryLocation = "/object/urlcategories/"
+        self.applicationLocation = "/object/applications/"
+        self.hostLocation = "/object/hosts/"
+
+        self.filePolicyLocation = "/policy/filepolicies"
 
         return None
 
     def requestToken(self):
+        """
+        We will need to extract these username/password values and either read them from user input or a security key file
+        Can we pull the domain ID from this auth request and set it by default?
+        """
+        response = requests.Response
+        url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
 
-        response = requests.post(
-            'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken',
-            auth=HTTPBasicAuth('apiuser', 'JR8A54gWFc&#IVxIvoP91@0mWhQ51'),
-            data={},
-            verify=False
-        )
+        for i in range(3):
+            while True:
+                try:
+                    response = requests.post(
+                        url,
+                        auth=HTTPBasicAuth('apiuser', 'JR8A54gWFc&#IVxIvoP91@0mWhQ51'),
+                        data={},
+                        verify=False
+                    )
+                except Exception:
+                    self.logger.info("Token request timed out. {Retry Count:"+ str(i+1) +"}")
+                    continue
+                finally:
+                    """
+                    If i is equal to our range - 1, then stop retrying and stop the tool.
+                    Range i value will be: 0, 1, 2 which is why we are checking for i == 2
+                    """
+                    if i == 2:
+                        self.logger.info("Maximum Token Requests Tried. Stopping Tool.")
+                        exit()
+                break
 
+
+
+        if response.headers['DOMAIN_UUID']:
+            self.domainId = response.headers['DOMAIN_UUID']
+            self.logger.info("Domain Id found and set")
+            pass
+
+        self.logger.info("Auth token found and set")
         return response.headers['X-auth-access-token']
 
-    def __addHost(self, domain, name, value, description='', group=''):
+    def __addHost(self, name:str, value:str, description='', group=''):
+        """
+        Creates a Host object with the FMC constructor and adds it to the Host Object List
 
-        hostObj = Host.HostObject(
-            domain, name, value, description, group, self.fmcIP)
+        Args:
+            name (str): The name of the host to be added
+            value (str): The value for the host object
+            description (str, optional): The description to be added to the Host object. Defaults to ''.
+            group (str, optional): The name of a Host Group in FMC to add. Defaults to ''.
 
-        result = self.hostObjectList.append(hostObj)
+        Returns:
+            None: The Host object is appended to the Host Object List
+        """
 
-        return self.hostObjectList
+        hostObj = Host.HostObject.FMCHost(self, name, value, description, group)
+        self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
+        return self.hostObjectList.append(hostObj)
 
-    def __addNetwork(self, domain, name, value, description='', group=''):
+    def __addNetwork(self, domain: str, name: str, value: str, description='', group=''):
 
         networkObj = Network.NetworkObject(
             domain, name, value, description, group, self.fmcIP)
-        result = self.networkObjectList.append(networkObj)
-        return result
+        return self.networkObjectList.append(networkObj)
 
     def __addURL(self, domain, name, url, description='', group=''):
 
         urlObj = URL.URLObject(
             domain, name, url, description, group, self.fmcIP)
-        result = self.URLObjectList.append(urlObj)
-
-        return result
+        return self.URLObjectList.append(urlObj)
 
     def __addFQDN(self, domain, name, value, description='', group=''):
 
-        result = self.FQDNObjectList.append(FQDN.FQDNObject(
-            domain, name, value, description, group, self.fmcIP))
+        fqdnObj = FQDN.FQDNObject(
+            domain, name, value, description, group, self.fmcIP)
 
-        return result
+        return self.FQDNObjectList.append(fqdnObj)
 
     def __createGroupMembershipLists(self, type):
 
@@ -148,21 +205,16 @@ class FMC:
         return groupDict
 
     def deleteGroup(self, id, type):
-        if type == 'network':
-            url = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networkgroups/' + id
-        elif type == 'url':
-            url = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urlgroups/' + id
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        groupLocation = self.networkGroupLocation if type == "network" else self.urlGroupLocation
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, groupLocation, id)
 
         networks = requests.delete(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
-        print("deleted")
+        self.logger.info("Group deleted. {Id: "+ id + ", Type: " + type + "}")
         return networks.status_code
 
     def createGroups(self, type):
@@ -175,7 +227,7 @@ class FMC:
                 type = 'network'
 
             objGroup = ObjectGroup.GroupObject(
-                'e276abec-e0f2-11e3-8169-6d9ed49b625f', group, type, groupDict[group], self.fmcIP)
+                self.domainId, group, type, groupDict[group], self.fmcIP)
             flag = True
 
             for i in self.allGroupsList:
@@ -274,7 +326,7 @@ class FMC:
     def addObject(self, domain, type, name, value, description='', group=''):
 
         if type == 'host':
-            self.__addHost(domain, name, value, description, group)
+            self.__addHost(name, value, description, group)
 
         elif type == 'network':
             self.__addNetwork(domain, name, value, description, group)
@@ -295,7 +347,6 @@ class FMC:
                 return self.hostObjectList
             case "network":
                 return self.networkObjectList
-                # return self.allNetworkObjectList
             case "url":
                 return self.URLObjectList
             case "fqdn":
@@ -362,7 +413,7 @@ class FMC:
                                 flag_network = False
                             elif ((i[0] == network.getName()) and (i[2] != network.getValue())):
                                 print(
-                                    i[0], i[2], "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+                                    i[0], i[2], "Condition 1.2: There exists an object with x 4dwwwwwwwwwwwwwwwwwwwwwwvthe same name. Do you want to delete the existing object? Please answer Y/N: ")
                                 ans = str(input())
                                 if ans == 'Y':
                                     print("Condition 1.2.1")
@@ -450,13 +501,11 @@ class FMC:
 
     def __getSecurityZones(self):
 
-        url = "https://" + self.fmcIP + \
-            "/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/securityzones"
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.securityZoneLocation, id)
 
         securityZones = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -472,13 +521,12 @@ class FMC:
         return returnList
 
     def __getPortObjects(self):
-        url = "https://" + self.fmcIP + \
-            "/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/ports"
-        authHeaders = {"X-auth-access-token": self.apiToken}
+
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.portLocation)
 
         ports = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -493,13 +541,12 @@ class FMC:
         return returnList
 
     def __getFilePolicies(self):
-        url = "https://" + self.fmcIP + \
-            "/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/policy/filepolicies"
-        authHeaders = {"X-auth-access-token": self.apiToken}
+
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.filePolicyLocation)
 
         filePolicies = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -515,13 +562,12 @@ class FMC:
         return returnList
 
     def __getURLCategories(self):
-        url = "https://" + self.fmcIP + \
-            "/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urlcategories"
-        authHeaders = {"X-auth-access-token": self.apiToken}
+
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlCategoryLocation)
 
         urlCategories = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -538,13 +584,12 @@ class FMC:
         return returnList
 
     def __getApplications(self):
-        url = "https://" + self.fmcIP + \
-            "/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/applications"
-        authHeaders = {"X-auth-access-token": self.apiToken}
+
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.applicationLocation)
 
         applications = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -561,13 +606,12 @@ class FMC:
         return returnList
 
     def __getAllNetworks(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networks'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation)
 
         networks = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -577,15 +621,14 @@ class FMC:
         for cat in networks:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networks/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             network = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeader,
                 verify=False
-            )
+           )
 
             network = network.json()
             returnList.append([network['name'], network['id'],
@@ -594,12 +637,11 @@ class FMC:
         return returnList
 
     def __getAllUrls(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urls'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation)
+
         networks = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -609,13 +651,12 @@ class FMC:
         for cat in urls:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urls/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             network = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeader,
                 verify=False
             )
 
@@ -625,12 +666,11 @@ class FMC:
         return returnList
 
     def __getAllHosts(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/hosts'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation)
+
         hosts = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -640,13 +680,12 @@ class FMC:
         for cat in hosts:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/hosts/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             host = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeader,
                 verify=False
             )
 
@@ -657,12 +696,11 @@ class FMC:
         return returnList
 
     def __getAllGroups(self):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networkgroups'
-        authHeaders = {"X-auth-access-token": self.apiToken}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkGroupLocation)
+        
         hosts = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -672,13 +710,12 @@ class FMC:
         for cat in hosts:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networkgroups/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             host = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeader,
                 verify=False
             )
 
@@ -690,12 +727,9 @@ class FMC:
                 returnList.append(
                     [cat['name'], cat['id'], "literals", cat['type'], host.json()['literals']])
 
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urlgroups'
-        authHeaders = {"X-auth-access-token": self.apiToken}
         hosts = requests.get(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
@@ -704,13 +738,12 @@ class FMC:
         for cat in hosts:
             del cat['links']
 
-            newURL = 'https://' + self.fmcIP + \
-                '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urlgroups/' + \
-                cat['id']
+            newURL = url + \
+                     cat['id']
 
             host = requests.get(
                 url=newURL,
-                headers=authHeaders,
+                headers=self.authHeaders,
                 verify=False
             )
 
@@ -725,46 +758,37 @@ class FMC:
         return returnList
 
     def deleteNetwork(self, id):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networks/'+id
-        authHeaders = {"X-auth-access-token": self.apiToken}
-        params = {"id": id}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation, id)
         networks = requests.delete(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
         return networks.status_code
 
     def deleteUrls(self, id):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urls/' + id
-        authHeaders = {"X-auth-access-token": self.apiToken}
-        params = {"id": id}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation, id)
         networks = requests.delete(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
         return networks.status_code
 
     def deleteHosts(self, id):
-        url = 'https://' + self.fmcIP + \
-            '/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/hosts/' + id
-        authHeaders = {"X-auth-access-token": self.apiToken}
-        params = {"id": id}
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation, id)
         networks = requests.delete(
             url=url,
-            headers=authHeaders,
+            headers=self.authHeader,
             verify=False
         )
 
         return networks.status_code
 
     def createAccessRule(self, csvRow):
-
+        
         policyObject = AccessPolicy.AccessPolicyObject('e276abec-e0f2-11e3-8169-6d9ed49b625f', '005056B6-DCA2-0ed3-0000-004294973677', self.securityZoneObjectList, self.allNetworkObjectList,
                                                        self.portObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList, self.fmcIP)
         response = policyObject.createPolicy(self.apiToken, csvRow)
