@@ -8,7 +8,7 @@ class NetworkObject:
 
     def __init__(self, domainUUID, name, value, description, groupMembership, ip):
 
-        self. creationURL = 'https://'+ ip +'/api/fmc_config/v1/domain/' + domainUUID + '/object/networks'
+        self.creationURL = 'https://'+ ip +'/api/fmc_config/v1/domain/' + domainUUID + '/object/networks'
 
         self.objectUUID = ''
         self.groupMembership = groupMembership

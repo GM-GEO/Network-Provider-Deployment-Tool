@@ -19,9 +19,7 @@ class HostObject:
         self.objectUUID = ""
         self.groupMembership = groupMembership
 
-        self.creationURL = buildUrlForResource(providerIP, providerDomain,
-                                               providerDomain, domainId,
-                                               hostLocation)
+        self.creationURL = buildUrlForResource(providerIP, providerDomain,domainId,hostLocation)
         self.objectPostBody = {}
         self.objectPostBody['name'] = name
         self.objectPostBody['type'] = 'host'

@@ -59,12 +59,23 @@ def main():
                              object['value'],
                              group=object['group'])
 
-        log.info("Get Object List: ", labFMC.getObjectList("network"))
-        log.info("Apply result: ", labFMC.applyObjectList("network"))
-        log.info("Creating group: ", labFMC.createGroups("network"))
-        log.info("Get Object List: ", labFMC.getObjectList("url"))
-        log.info("Apply result: ", labFMC.applyObjectList("url"))
-        log.info("Creating group: ", labFMC.createGroups("url"))
+        labFMC.getObjectList("network")
+        log.info("Retrieved Object List.")
+
+        labFMC.applyObjectList("network")
+        log.info("Applied Result.")
+
+        labFMC.createGroups("network")
+        log.info("Created Group.")
+
+        labFMC.getObjectList("url")
+        log.info("Retrieved Object List.")
+
+        labFMC.applyObjectList("url")
+        log.info("Applied Result.")
+
+        labFMC.createGroups("url")
+        log.info("Created Group.")
 
         Logger_AddBreakLine()
 

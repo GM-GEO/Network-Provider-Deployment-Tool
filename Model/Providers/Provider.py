@@ -5,13 +5,8 @@ from Model.Utilities.ExtendedEnum import ExtendedEnum
 
 
 class Provider:
-    def __init__(self):
 
-        self.hostObjectList = []
-        self.networkObjectList = []
-        self.objectGroupList = []
-        self.URLObjectList = []
-        self.FQDNObjectList = []
+    def __init__(self):
 
         self.portObjectList = self.__getPortObjects()
         self.securityZoneObjectList = self.__getSecurityZones()
@@ -50,8 +45,8 @@ def checkServiceProvider(serviceProvider: str):
     return validServiceProvider
 
 
-def buildUrlForResource(IpAddress, domainLocation, domainId, resourceLocation,
-                        id):
+def buildUrlForResourceWithId(IpAddress: str, domainLocation: str,
+                              domainId: str, resourceLocation: str, id: str):
     """Build an https prefixed resource endpoint to use for CRUD operations
 
     Args:
@@ -64,11 +59,13 @@ def buildUrlForResource(IpAddress, domainLocation, domainId, resourceLocation,
     Returns:
         string: the fully qualified URL resource
     """
-    return 'https://' + IpAddress + \
-            domainLocation + domainId + resourceLocation + id
+    ourString = 'https://{0}{1}{2}{3}/{4}'.format(IpAddress, domainLocation,
+                                             domainId, resourceLocation, id)
+    return ourString
 
 
-def buildUrlForResource(IpAddress: str, domainLocation: str, domainId: str, resourceLocation: str):
+def buildUrlForResource(IpAddress: str, domainLocation: str, domainId: str,
+                        resourceLocation: str):
     """Build an https prefixed resource endpoint to use for CRUD operations
 
     Args:
@@ -80,8 +77,7 @@ def buildUrlForResource(IpAddress: str, domainLocation: str, domainId: str, reso
     Returns:
         string: the fully qualified URL resource
     """
-    return 'https://' + IpAddress + \
-            domainLocation + domainId + resourceLocation
+    return 'https://' + IpAddress + domainLocation + domainId + resourceLocation
 
 
 class ProviderEnum(ExtendedEnum):
