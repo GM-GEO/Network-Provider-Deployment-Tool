@@ -9,7 +9,9 @@ from Model.Providers.Provider import *
 
 
 def main():
-
+    """ The main head of the program. The user will select their provider, enter the relevant credentials,
+        select the files for objects and rules, and have them be automatically created
+    """
     desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
     log = Create_Logger(
         desktop, "%s %s" % ("Network Profile Tool Log - ",

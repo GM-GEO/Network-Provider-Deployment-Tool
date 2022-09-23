@@ -5,7 +5,6 @@ from Model.Utilities.ExtendedEnum import ExtendedEnum
 
 
 class Provider:
-
     def __init__(self):
 
         self.hostObjectList = []
@@ -29,7 +28,15 @@ class Provider:
         return None
 
 
-def checkServiceProvider(serviceProvider):
+def checkServiceProvider(serviceProvider: str):
+    """Checks the selection of Service Provider entered by the user
+
+    Args:
+        serviceProvider (str): The name of the service provider from the ProviderEnum list
+
+    Returns:
+        bool: Returns if the entered value was in the ProviderEnum list
+    """
     validServiceProvider = False
     log = Logger_GetLogger()
 
