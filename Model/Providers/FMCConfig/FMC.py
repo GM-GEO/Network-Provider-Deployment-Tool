@@ -97,7 +97,8 @@ class FMC(Provider):
         return response.headers['X-auth-access-token']
 
     def __addHost(self, name:str, value:str, description='', group=''):
-        """Creates a Host object with the FMC constructor and adds it to the Host Object List
+        """
+        Creates a Host object with the FMC constructor and adds it to the Host Object List
 
         Args:
             name (str): The name of the host to be added
@@ -106,7 +107,7 @@ class FMC(Provider):
             group (str, optional): The name of a Host Group in FMC to add. Defaults to ''.
 
         Returns:
-            None: _description_
+            None: The Host object is appended to the Host Object List
         """
 
         hostObj = Host.HostObject.FMCHost(self, name, value, description, group)

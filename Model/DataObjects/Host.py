@@ -18,18 +18,18 @@ class HostObject:
 
         self.objectUUID = ""
         self.groupMembership = groupMembership
-        self.objectPostBody = {}
+
         self.creationURL = buildUrlForResource(providerIP, providerDomain,
                                                providerDomain, domainId,
                                                hostLocation)
-
+        self.objectPostBody = {}
         self.objectPostBody['name'] = name
         self.objectPostBody['type'] = 'host'
         self.objectPostBody['value'] = value
         self.objectPostBody['description'] = description
 
     @classmethod
-    def FMCHost(cls, provider, name: str, value: str, description: str,
+    def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
                 groupMembership: str):
 
         return cls(name, value, description, groupMembership, provider.fmcIP,
