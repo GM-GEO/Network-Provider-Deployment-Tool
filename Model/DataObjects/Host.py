@@ -41,13 +41,14 @@ class HostObject:
         return HostObject(name, value, description, groupMembership,
                           provider.fmcIP, provider.domainLocation,
                           provider.domainId, provider.hostLocation)
+        # return cls(name, value, description, groupMembership, provider.)
 
     def createHost(self, apiToken):
         # set authentication in the header
-        autheHeaders = {"X-auth-access-token": apiToken}
+        authHeaders = {"X-auth-access-token": apiToken}
 
         response = requests.post(url=self.creationURL,
-                                 headers=autheHeaders,
+                                 headers=authHeaders,
                                  json=self.objectPostBody,
                                  verify=False)
 
