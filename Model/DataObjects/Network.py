@@ -29,7 +29,7 @@ class NetworkObject:
                    groupMembership):
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
-                                  provider.domainId, provider.objectLocation)
+                                  provider.domainId, provider.networkLocation)
 
         return cls(url, name, value, description, groupMembership)
 
