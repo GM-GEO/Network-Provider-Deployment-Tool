@@ -23,7 +23,7 @@ class FQDNObject:
 
     @classmethod
     def FMCFQDN(cls, provider: FMC, name, value, description, groupMembership):
-
+        """"""
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.objectLocation)
 
