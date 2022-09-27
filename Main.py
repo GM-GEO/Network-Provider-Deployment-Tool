@@ -2,6 +2,7 @@ import os
 
 from datetime import datetime
 from Model.Providers.FMCConfig.FMC import FMC
+from Model.Providers.PaloAltoConfig.PaloAlto import PaloAlto
 from Model.Utilities.FileUtils import *
 from Model.Utilities.LoggingUtils import *
 from Model.Utilities.IPUtils import *
@@ -39,7 +40,18 @@ def main():
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
-        pass
+        while not checkValidIPAddress(ipAddress):
+            log.info("Enter Palo Alto IP Address: ")
+            ipAddress = str(input())
+
+        paloAlto = PaloAlto(ipAddress)
+        parsedObjectCSV = readCSVFromFile(objectFile)
+        parsedRuleCSV = readCSVFromFile(ruleFile)
+
+        print(parsedObjectCSV)
+        # paloAlto.getNetworks()
+        Logger_AddBreakLine()
+
     elif serviceProvider == ProviderEnum.FMC.value:
         while not checkValidIPAddress(ipAddress):
             log.info("Enter FMC IP Address: ")
@@ -58,6 +70,15 @@ def main():
                              object['name'],
                              object['value'],
                              group=object['group'])
+
+        labFMC.getObjectList("host")
+        log.info("Retrieved Object List.")
+
+        labFMC.applyObjectList("host")
+        log.info("Applied Result.")
+
+        labFMC.createGroups("host")
+        log.info("Created Group.")
 
         labFMC.getObjectList("network")
         log.info("Retrieved Object List.")

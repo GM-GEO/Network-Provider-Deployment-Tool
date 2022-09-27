@@ -1,5 +1,9 @@
 import requests
 
+from Model.DataObjects.Host import HostObject
+from Model.Providers.FMCConfig import FMC
+from Model.Providers.PaloAltoConfig import PaloAlto
+from Model.Providers.Provider import buildUrlForResource
 
 class NetworkObject:
 
@@ -18,6 +22,20 @@ class NetworkObject:
         self.objectPostBody['type'] = 'network'
         self.objectPostBody['value'] = value
         self.objectPostBody['description'] = description
+
+    @classmethod
+    def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
+                groupMembership: str):
+        return cls(name, value, description, groupMembership, provider.fmcIP,
+                   provider.domainLocation, provider.domainId,
+                   provider.hostLocation)
+
+    @classmethod
+    def PaloAltoHost(provider: PaloAlto, name, value, description,
+                     groupMembership):
+        return HostObject(name, value, description, groupMembership,
+                          provider.fmcIP, provider.domainLocation,
+                          provider.domainId, provider.hostLocation)
 
 
     def createNetwork(self, apiToken):
