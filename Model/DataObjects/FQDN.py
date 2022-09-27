@@ -1,12 +1,16 @@
 import requests
 
+from Model.Providers.FMCConfig import FMC
+from Model.Providers.PaloAltoConfig import PaloAlto
+from Model.Providers.Provider import buildUrlForResource
+from Model.Utilities.LoggingUtils import Logger_GetLogger
+
 
 class FQDNObject:
 
-    def __init__(self, domainUUID, name, value, description, groupMembership,
-                 ip):
+    def __init__(self, resourceUrl, name, value, description, groupMembership):
 
-        self.creationURL = 'https://' + ip + '/api/fmc_config/v1/domain/' + domainUUID + '/object/fqdns'
+        self.creationURL = resourceUrl
 
         self.objectUUID = ''
         self.groupMembership = groupMembership
@@ -16,6 +20,22 @@ class FQDNObject:
         self.objectPostBody['type'] = 'fqdn'
         self.objectPostBody['value'] = value
         self.objectPostBody['description'] = description
+
+    @classmethod
+    def FMCFQDN(cls, provider: FMC, name, value, description, groupMembership):
+
+        url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
+                                  provider.domainId, provider.objectLocation)
+
+        return cls(url, name, value, description, groupMembership)
+
+    @classmethod
+    def PaloAltoFQDN(cls, provider: FMC, name, value, description, groupMembership):
+
+        url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
+                                  provider.domainId, provider.objectLocation)
+
+        return cls(url, name, value, description, groupMembership)
 
     def createFQDN(self, apiToken):
         #set authentication in the header
