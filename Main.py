@@ -1,8 +1,10 @@
 import os
 
+from getpass import getpass
 from datetime import datetime
 from Model.Providers.FMCConfig.FMC import FMC
 from Model.Utilities.FileUtils import *
+from Model.Utilities.StringUtils import *
 from Model.Utilities.LoggingUtils import *
 from Model.Utilities.IPUtils import *
 from Model.Providers.Provider import *
@@ -20,6 +22,8 @@ def main():
     ruleFile = ''
     serviceProvider = ''
     ipAddress = ''
+    username = None
+    password = None
 
     while not checkServiceProvider(serviceProvider):
         log.info("Select a Network Provider: ")
@@ -45,10 +49,22 @@ def main():
             log.info("Enter FMC IP Address: ")
             ipAddress = str(input())
 
-        labFMC = FMC(ipAddress)
+
+        while not checkValidUsername(username):
+            log.info("Enter Username:")
+            username = str(input())
+
+        while not checkValidPassword(password):
+            password = getpass("Enter Password:")
+
+        labFMC = FMC(ipAddress, username, password)
+
+        log.info("Parsing CSV Files.")
 
         parsedObjectCSV = readCSVFromFile(objectFile)
         parsedRuleCSV = readCSVFromFile(ruleFile)
+
+        log.info("CSV files read.")
 
         Logger_AddBreakLine()
 
@@ -81,7 +97,7 @@ def main():
 
         for index, rule in parsedRuleCSV.items():
             result = labFMC.createAccessRule(rule)
-            log.info("Rule creation: ", result)
+            log.info("Rule creation: " + result)
 
         pass
 
