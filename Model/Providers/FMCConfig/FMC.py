@@ -1,14 +1,17 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject
+from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
 from Model.Providers.Provider import Provider, buildUrlForResource, buildUrlForResourceWithId
 from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, \
     SecurityZones, URL, URLCategory
 from Model.Utilities.LoggingUtils import Logger_GetLogger
+from Model.Utilities.StringUtils import checkYesNoResponse, checkValidGroupType
+from Model.DataObjects.YesNoEnum import YesNoEnum
 
 
 class FMC(Provider):
-    def __init__(self, ipAddress):
+    def __init__(self, ipAddress, username, password):
         """Creates the FMC provider with the lists of objects and resource locations
 
         Args:
@@ -25,7 +28,7 @@ class FMC(Provider):
 
         self.fmcIP = ipAddress
 
-        self.apiToken = self.requestToken()
+        self.apiToken = self.requestToken(username, password)
 
         self.authHeader = {"X-auth-access-token": self.apiToken}
 
@@ -34,6 +37,8 @@ class FMC(Provider):
         self.objectGroupList = []
         self.URLObjectList = []
         self.FQDNObjectList = []
+
+        self.supportedObjectList = ["host","network","url","fqdn"]
 
         self.domainLocation = "/api/fmc_config/v1/domain/"
 
@@ -46,8 +51,10 @@ class FMC(Provider):
         self.urlCategoryLocation = "/object/urlcategories"
         self.applicationLocation = "/object/applications"
         self.hostLocation = "/object/hosts"
+        self.fqdnLocation = "/object/fqdns"
 
         self.filePolicyLocation = "/policy/filepolicies"
+        self.accessPolicyLocation = "/policy/accesspolicies"
 
         self.portObjectList = self.__getPortObjects()
         self.securityZoneObjectList = self.__getSecurityZones()
@@ -63,7 +70,7 @@ class FMC(Provider):
 
         return None
 
-    def requestToken(self):
+    def requestToken(self, username, password):
         """
         We will need to extract these username/password values and either read them from user input or a security key file
         Can we pull the domain ID from this auth request and set it by default?
@@ -71,11 +78,11 @@ class FMC(Provider):
         response = requests.Response
         url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
         response = requests.post(
-            url,
-            auth=HTTPBasicAuth('varneet.kaur_a', 'Tstpass1029'),
-            data={},
-            verify=False
-        )
+                url,
+                auth=HTTPBasicAuth(username, password),
+                data={},
+                verify=False
+            )
 
         print(response.headers)
 
@@ -100,27 +107,51 @@ class FMC(Provider):
         Returns:
             None: The Host object is appended to the Host Object List
         """
+        
+        #groupExists = ObjectGroup.GroupObject.checkIfGroupExists(group, self.fmcIP, self.domainLocation, self.domainId, self.apiToken)
+        #createGroupFlag = None
+        #statusCode = None
+        #groupType = None
 
-        hostObj = Host.HostObject.FMCHost(self, name, value, description, group)
+        #if groupExists == False:
+        #    while not checkYesNoResponse(createGroupFlag):
+        #        self.logger.info("The group: " + group  + " was not found, create this group? (Yes/No)")
+        #        createGroupFlag = str(input())
+
+        #    if createGroupFlag == YesNoEnum.YES.value:
+
+        #        while not checkValidGroupType(groupType):
+        #            self.logger.info("Select the Group Type for the new group:")
+        #            self.logger.info(GroupTypeEnum.list())
+        #            groupType = str(input())
+
+        #        statusCode = ObjectGroup.GroupObject.createNewGroup(group, groupType, self.fmcIP, self.domainLocation, self.domainId, self.apiToken)
+        #        self.logger.info("The group:" + group + " was posted to FMC. {Status Code: " + statusCode + "Type: " + groupType + "}")
+        #        pass
+        #    pass
+        #else :
+        #    self.logger.info("Host Group Found. {Group Name:" + group +"}")
+
+        
+        hostObj = Host.HostObject.FMCHost(self, name, value, description, group)    
         self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
         return self.hostObjectList.append(hostObj)
 
-    def __addNetwork(self, domain: str, name: str, value: str, description='', group=''):
+    def __addNetwork(self, name: str, value: str, description='', group=''):
 
-        networkObj = Network.NetworkObject(
-            domain, name, value, description, group, self.fmcIP)
+        networkObj = Network.NetworkObject.FMCNetwork(self, name, value, description, group)
+        
         return self.networkObjectList.append(networkObj)
 
-    def __addURL(self, domain, name, url, description='', group=''):
+    def __addURL(self, name, url, description='', group=''):
 
-        urlObj = URL.URLObject(
-            domain, name, url, description, group, self.fmcIP)
+        urlObj = URL.URLObject.FMCUrlObject(self, name, url, description, group)
+        
         return self.URLObjectList.append(urlObj)
 
-    def __addFQDN(self, domain, name, value, description='', group=''):
+    def __addFQDN(self, name, value, description='', group=''):
 
-        fqdnObj = FQDN.FQDNObject(
-            domain, name, value, description, group, self.fmcIP)
+        fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
 
         return self.FQDNObjectList.append(fqdnObj)
 
@@ -200,6 +231,8 @@ class FMC(Provider):
 
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, groupLocation, id)
 
+        self.logger.info("Deleting group. {Group Type: " + groupLocation  +"}")
+        
         networks = requests.delete(
             url=url,
             headers=self.authHeader,
@@ -321,13 +354,13 @@ class FMC(Provider):
             self.__addHost(name, value, description, group)
 
         elif type == 'network':
-            self.__addNetwork(domain, name, value, description, group)
+            self.__addNetwork(name, value, description, group)
 
         elif type == 'url':
-            self.__addURL(domain, name, value, description, group)
+            self.__addURL(name, value, description, group)
 
         elif type == 'fqdn':
-            self.__addFQDN(domain, name, value, description, group)
+            self.__addFQDN(name, value, description, group)
 
         else:
             return "Object type not configured"
@@ -405,8 +438,7 @@ class FMC(Provider):
                                 flag_network = False
                             elif ((i[0] == network.getName()) and (i[2] != network.getValue())):
                                 print(
-                                    i[0], i[2],
-                                    "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+                                    i[0], i[2], "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
                                 ans = str(input())
                                 if ans == 'Y':
                                     print("Condition 1.2.1")
@@ -786,11 +818,9 @@ class FMC(Provider):
 
     def createAccessRule(self, csvRow):
 
-        policyObject = AccessPolicy.AccessPolicyObject(self.domainId, '005056B6-DCA2-0ed3-0000-004294973677',
-                                                       self.securityZoneObjectList, self.allNetworkObjectList,
-                                                       self.portObjectList, self.filePolicyObjectList,
-                                                       self.urlCategoryObjectList, self.allUrlObjectList,
-                                                       self.allGroupsList, self.applicationObjectList, self.fmcIP)
+        policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-004294973677', self.securityZoneObjectList, self.allNetworkObjectList,
+                                                       self.portObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList)
+        
         response = policyObject.createPolicy(self.apiToken, csvRow)
 
         return response

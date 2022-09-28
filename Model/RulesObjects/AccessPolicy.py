@@ -1,11 +1,21 @@
 import csv
 import requests
+from Model.Providers.FMCConfig import FMC
+from Model.Providers.PaloAltoConfig import PaloAlto
+from Model.Utilities.LoggingUtils import Logger_GetLogger
+from Model.Providers.Provider import buildUrlForResourceWithId
 
 
 class AccessPolicyObject:
 
-    def __init__(self, domainUUID, policyUUID, securityZoneObjects, networkObjects, portObjects, filePolicyObjects, urlCategoryObjects, urlObjects, groupObjects, applicationObjects, ip):
-        self.url = 'https://'+ ip +'/api/fmc_config/v1/domain/' + domainUUID + '/policy/accesspolicies/' + policyUUID + '/accessrules'
+    def __init__(self, ip, domainUUID, policyUUID, domainLocation,
+                 accessPolicyLocation, securityZoneObjects, networkObjects,
+                 portObjects, filePolicyObjects, urlCategoryObjects,
+                 urlObjects, groupObjects, applicationObjects):
+
+        self.url = buildUrlForResourceWithId(ip, domainLocation, domainUUID,
+                                             accessPolicyLocation,
+                                             policyUUID) + '/accessrules'
         self.securityZones = securityZoneObjects
         self.networks = networkObjects
         self.ports = portObjects
@@ -15,6 +25,18 @@ class AccessPolicyObject:
         self.groups = groupObjects
 
         self.applications = applicationObjects
+
+    @classmethod
+    def FMCAccessPolicyObject(cls, provider: FMC, policyUUID,
+                              securityZoneObjects, networkObjects, portObjects,
+                              filePolicyObjects, urlCategoryObjects,
+                              urlObjects, groupObjects, applicationObjects):
+
+        return cls(provider.fmcIP, provider.domainId, policyUUID,
+                   provider.domainLocation, provider.accessPolicyLocation,
+                   securityZoneObjects, networkObjects, portObjects,
+                   filePolicyObjects, urlCategoryObjects, urlObjects,
+                   groupObjects, applicationObjects)
 
     def __getSecurityZones(self, csvRow):
         for zone in self.securityZones:
@@ -29,14 +51,9 @@ class AccessPolicyObject:
                 destinationZone['name'] = zone.getName()
                 destinationZone['id'] = zone.getID()
 
-
-
         return (sourceZone, destinationZone)
 
     def __getNetworks(self, csvRow):
-        print("Networks: ", self.networks)
-        print("Groups: ", self.groups)
-
         sourceNetwork = None
         destinationNetwork = None
 
@@ -58,7 +75,7 @@ class AccessPolicyObject:
                 destinationNetwork['overridable'] = False
                 print("Condition 2: ", destinationNetwork)
 
-        if sourceNetwork == None or destinationNetwork == None: #if the network was not found in the list of network objects
+        if sourceNetwork == None or destinationNetwork == None:  #if the network was not found in the list of network objects
             for group in self.groups:
                 if group[0] == csvRow['sourceNetworks']:
                     sourceNetwork = {}
@@ -74,9 +91,7 @@ class AccessPolicyObject:
                     destinationNetwork['type'] = 'NetworkGroup'
                     print("Condition 4: ", destinationNetwork)
 
-
         return (sourceNetwork, destinationNetwork)
-
 
     def __getPorts(self, sourceList, destList, csvRow):
         sourcePortObjectList = []
@@ -103,7 +118,6 @@ class AccessPolicyObject:
 
         return (sourcePortObjectList, destinationPortObjectList)
 
-
     def __getFilePolicies(self, csvRow):
         for fp in self.filePolicies:
             if fp.getName() == csvRow['filePolicy']:
@@ -125,10 +139,6 @@ class AccessPolicyObject:
                 application['overridable'] = False
         return application
 
-
-
-
-
     def __getUrlCategories(self, csvUrlCategories):
 
         returnList = []
@@ -137,7 +147,11 @@ class AccessPolicyObject:
             tempDict = {}
             if cat.getName() in csvUrlCategories:
                 tempDict['reputation'] = "ANY_EXCEPT_UNKNOWN"
-                tempDict['category'] = {"name": cat.getName(), "id": cat.getID(), 'type': 'URLCategory'}
+                tempDict['category'] = {
+                    "name": cat.getName(),
+                    "id": cat.getID(),
+                    'type': 'URLCategory'
+                }
                 tempDict['type'] = "UrlCategoryAndReputation"
 
                 returnList.append(tempDict)
@@ -161,6 +175,9 @@ class AccessPolicyObject:
 
     def createPolicy(self, apiToken, csvRow):
         # set authentication in the header
+        logger = Logger_GetLogger()
+        logger.info("Initiating Policy Creation")
+
         authHeaders = {"X-auth-access-token": apiToken}
 
         # Split columns that can contain lists of values
@@ -176,9 +193,12 @@ class AccessPolicyObject:
         urls = self.__getUrls(csvRow)
         application = self.__getApplication(csvRow)
 
+        logger.info("Got data from CSV files")
+
         # create body for post request
         postBody = {}
-        postBody['action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
+        postBody[
+            'action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
         postBody['enabled'] = True
         postBody['type'] = 'AccessRule'
         postBody['name'] = csvRow['name']
@@ -186,7 +206,8 @@ class AccessPolicyObject:
 
         if postBody['action'] == 'ALLOW':
             postBody['filePolicy'] = filePolicy
-            postBody['logFiles'] = True if 'TRUE' in csvRow['logFiles'] else False
+            postBody[
+                'logFiles'] = True if 'TRUE' in csvRow['logFiles'] else False
 
         postBody['logBegin'] = False if "Permit" in csvRow['action'] else True
         postBody['logEnd'] = not postBody['logBegin']
@@ -196,41 +217,30 @@ class AccessPolicyObject:
         postBody['destinationZones'] = {'objects': [securityZones[1]]}
         postBody['sourcePorts'] = {'objects': ports[0]}
         postBody['destinationPorts'] = {'objects': ports[1]}
-        postBody['urls'] = {"urlCategoriesWithReputation": urlCategories, "objects": urls}
+        postBody['urls'] = {
+            "urlCategoriesWithReputation": urlCategories,
+            "objects": urls
+        }
         postBody['applications'] = {
-                "applications": [
-                    {
-                        "deprecated": True,
-                        "type": "Application",
-                        "name": application["name"],
-                        "overridable": application['overridable'],
-                        "id": application['id'],
+            "applications": [{
+                "deprecated": True,
+                "type": "Application",
+                "name": application["name"],
+                "overridable": application['overridable'],
+                "id": application['id'],
+            }]
+        }
 
-                    }
-                ]
-            }
+        logger.info("Creation request sent")
 
-        print("PostBody: ", postBody)
-
-        authHeader = {"X-auth-access-token": apiToken}
-
-        response = requests.post(
-            url=self.url,
-            headers=authHeader,
-            json=postBody,
-            verify=False
-        )
+        response = requests.post(url=self.url,
+                                 headers=authHeaders,
+                                 json=postBody,
+                                 verify=False)
 
         if response.status_code <= 299 and response.status_code >= 200:
             self.objectUUID = response.json()['id']
+            logger.info("Policy creation successful. {Policy Id:" +
+                        self.objectUUID + "}")
 
-        print('========================================================================')
-        print(postBody)
-        print('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
-        print(response.json())
-        print('========================================================================')
         return response.status_code
-
-
-
-

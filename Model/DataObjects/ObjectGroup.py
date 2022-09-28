@@ -1,10 +1,14 @@
 import requests
+from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
+
+from Model.Utilities.ListUtils import contains
+
 
 class GroupObject:
 
     def __init__(self, domainUUID, name, groupType, groupMemberIDList, ip):
 
-        self.creationURL = 'https://'+ ip +'/api/fmc_config/v1/domain/' + domainUUID + '/object/' + groupType + "groups"
+        self.creationURL = 'https://' + ip + '/api/fmc_config/v1/domain/' + domainUUID + '/object/' + groupType + "groups"
 
         self.groupUUID = ''
 
@@ -23,17 +27,14 @@ class GroupObject:
         else:
             self.postBody['type'] = "NetworkGroup"
 
-
     def createGroup(self, apiToken):
         #Set authentication in the header
-        authHeaders = {"X-auth-access-token" : apiToken}
+        authHeaders = {"X-auth-access-token": apiToken}
 
-        response = requests.post(
-            url = self.creationURL,
-            headers = authHeaders,
-            json = self.postBody,
-            verify = False
-        )
+        response = requests.post(url=self.creationURL,
+                                 headers=authHeaders,
+                                 json=self.postBody,
+                                 verify=False)
 
         if response.status_code <= 299 and response.status_code >= 200:
             self.groupUUID = response.json()['id']
@@ -44,9 +45,53 @@ class GroupObject:
 
         return response.status_code
 
-
     def getName(self):
         return self.name
 
     def getUUID(self):
         return self.groupUUID
+
+    def checkIfGroupExists(groupName: str, ipAddress, domainLocation, domainId,
+                           apiToken):
+        """Checks the returned list of groups to see if we have a group with the same name in the list
+
+        Args:
+            groupName (str): The group to check
+            apiToken (obj): The API token to make the request with
+
+        Returns:
+            Bool: Returns if the group name was found in the list of returned objects
+        """
+
+        groupTypeList = ["host", "network"]
+        groupExists = False
+        authHeaders = {"X-auth-access-token": apiToken}
+
+        for groupType in groupTypeList:
+            url = 'https://' + ipAddress + domainLocation + domainId + '/object/' + groupType + "groups"
+
+            response = requests.get(url=url, headers=authHeaders, verify=False)
+
+            groups = response.json()['items']
+            if contains(groups, lambda x: x.name == groupName):
+                groupExists = True
+                continue
+
+        return groupExists
+
+    def createNewGroup(groupName: str, groupType: GroupTypeEnum, ipAddress,
+                       domainLocation, domainId, apiToken):
+
+        postBody = {}
+        postBody['name'] = groupName
+        postBody['type'] = groupType.value
+
+        url = 'https://' + ipAddress + domainLocation + domainId + '/object/' + groupType.value + "groups"
+        authHeaders = {"X-auth-access-token": apiToken}
+
+        response = requests.post(url=url,
+                                 headers=authHeaders,
+                                 json=postBody,
+                                 verify=False)
+
+        return response.status_code

@@ -60,7 +60,8 @@ def buildUrlForResourceWithId(IpAddress: str, domainLocation: str,
         string: the fully qualified URL resource
     """
     ourString = 'https://{0}{1}{2}{3}/{4}'.format(IpAddress, domainLocation,
-                                             domainId, resourceLocation, id)
+                                                  domainId, resourceLocation,
+                                                  id)
     return ourString
 
 
@@ -71,13 +72,14 @@ def buildUrlForResource(IpAddress: str, domainLocation: str, domainId: str,
     Args:
         IpAddress (string): The address of the service provider
         domainLocation (string): The domain configuration
-        domainId (string): The GUID of the domain that is being targeted
+        domainId (string): The GUID of the domain that is being targeted. Domain Id can be left blank if there is no domain Id
         resourceLocation (string): The location of the resource group
 
     Returns:
         string: the fully qualified URL resource
     """
-    return 'https://' + IpAddress + domainLocation + domainId + resourceLocation
+    return 'https://{0}{1}{2}{3}'.format(IpAddress, domainLocation, domainId,
+                                         resourceLocation)
 
 
 class ProviderEnum(ExtendedEnum):
