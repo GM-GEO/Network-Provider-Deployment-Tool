@@ -40,8 +40,8 @@ class HostObject:
                    provider.domainId, provider.hostLocation, objectPostBody, None)
 
     @classmethod
-    def PaloAltoHost(provider: PaloAlto, name, value, description,
-                     groupMembership):
+    def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
+                     description: str, groupMembership: str):
 
         objectPostBody = {}
         objectPostBody['name'] = name
