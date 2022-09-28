@@ -1,8 +1,10 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from Model.Providers.Provider import Provider, buildUrlForResource, buildUrlForResourceWithId
+from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject
 from Model.Utilities.LoggingUtils import Logger_GetLogger
 import xml.etree.ElementTree as ET
+from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
 
 
 class PaloAlto(Provider):
@@ -13,7 +15,7 @@ class PaloAlto(Provider):
         self.apiKey = self.requestApiKey()
         self.authHeader = {"X-PAN-KEY": self.apiKey}
 
-        # self.hostObjectList = []
+        self.hostObjectList = []
         self.networkObjectList = []
         self.objectGroupList = []
         self.URLObjectList = []
@@ -191,4 +193,73 @@ class PaloAlto(Provider):
             returnList.append(temp)
         print("Applications: ", returnList)
         return returnList
+
+    # def __addHost(self, name: str, value: str, description='', group=''):
+    #     hostObj = Host.HostObject.PaloAltHost(self, name, value, description, group)
+    #     # self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
+    #     return self.hostObjectList.append(hostObj)
+
+    def __addNetwork(self, name, value, description, group):
+
+        networkObj = Network.NetworkObject.PaloAltNetwork(self, name, value, description, group)
+
+        return self.networkObjectList.append(networkObj)
+
+    def __addURL(self, name, value, description, group):
+
+        urlObj = URL.URLObject.PaloAltoUrlObject(self, name, value, description, group)
+
+        return self.URLObjectList.append(urlObj)
+
+    def __addFQDN(self, name, value, description='', group=''):
+
+        fqdnObj = FQDN.FQDNObject.PaloAltoFQDN(self, name, value, description, group)
+
+        return self.FQDNObjectList.append(fqdnObj)
+
+    def addObject(self, domain, type, name, value, description='', group=''):
+
+        # if type == 'host':
+        #     self.__addHost(name, value, description, group)
+
+        if type == 'network':
+            self.__addNetwork(name, value, description, group)
+
+        elif type == 'url':
+            self.__addURL(name, value, description, group)
+
+        elif type == 'fqdn':
+            self.__addFQDN(name, value, description, group)
+
+        else:
+            return "Object type not configured"
+
+    def getObjectList(self, objectType):
+
+        match objectType:
+            # case "host":
+            #     return self.hostObjectList
+            case "network":
+                return self.networkObjectList
+            case "url":
+                return self.URLObjectList
+            case "fqdn":
+                return self.FQDNObjectList
+            case "port":
+                return self.portObjectList
+            case "securityzone":
+                return self.securityZoneObjectList
+            case _:
+                return None
+
+    def applyObjectList(self, listType):
+        match listType:
+            case "network":
+                for network in self.networkObjectList:
+                    print("Name: ", network.getName(), "Value: ", network.getValue(), "Group: ", network.getGroupMembership(), "Description: ", network.getDescription())
+                    for i in self.allNetworkObjectList:
+                        if network.getName() == i[0]:
+                            print("Match found.")
+
+
 
