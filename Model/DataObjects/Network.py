@@ -1,3 +1,4 @@
+from typing import Dict
 import requests
 
 from Model.Providers.FMCConfig import FMC
@@ -11,36 +12,51 @@ class NetworkObject:
     #optional parameters
     overridable = False
 
-    def __init__(self, resourceURL, name, value, description, groupMembership):
+    def __init__(self, resourceURL, groupMembership, postBody,
+                 queryParameters: Dict):
 
         self.creationURL = resourceURL
-
+        self.objectPostBody = postBody
         self.objectUUID = ''
         self.groupMembership = groupMembership
-        self.objectPostBody = {}
 
-        self.objectPostBody['name'] = name
-        self.objectPostBody['type'] = 'network'
-        self.objectPostBody['value'] = value
-        self.objectPostBody['description'] = description
+        if queryParameters:
+            self.queryParameters = queryParameters
+            pass
 
     @classmethod
     def FMCNetwork(cls, provider: FMC, name, value, description,
                    groupMembership):
 
+        objectPostBody = {}
+
+        objectPostBody['name'] = name
+        objectPostBody['type'] = 'network'
+        objectPostBody['value'] = value
+        objectPostBody['description'] = description
+
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.networkLocation)
 
-        return cls(url, name, value, description, groupMembership)
+        return cls(url, name, value, description, groupMembership,
+                   objectPostBody, None)
 
     @classmethod
     def PaloAltNetwork(cls, provider: PaloAlto, name, value, description,
                        groupMembership):
 
+        objectPostBody = {}
+
+        objectPostBody['name'] = name
+        objectPostBody['type'] = 'network'
+        objectPostBody['value'] = value
+        objectPostBody['description'] = description
+
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.objectLocation)
 
-        return cls(url, name, value, description, groupMembership)
+        return cls(url, name, value, description, groupMembership,
+                   objectPostBody)
 
     def createNetwork(self, apiToken):
         # Set authentication in the header
