@@ -25,7 +25,7 @@ class HostObject:
 
         self.creationURL = buildUrlForResource(providerIP, providerDomain,
                                                domainId, hostLocation)
-
+                                               
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
                 groupMembership: str):
@@ -40,8 +40,8 @@ class HostObject:
                    provider.domainId, provider.hostLocation, objectPostBody, None)
 
     @classmethod
-    def PaloAltoHost(provider: PaloAlto, name, value, description,
-                     groupMembership):
+    def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
+                     description: str, groupMembership: str):
 
         objectPostBody = {}
         objectPostBody['name'] = name
@@ -49,9 +49,9 @@ class HostObject:
         objectPostBody['value'] = value
         objectPostBody['description'] = description
 
-        return HostObject(groupMembership, provider.fmcIP,
-                          provider.domainLocation, provider.domainId,
-                          provider.hostLocation, objectPostBody, None)
+        return cls(groupMembership, provider.paloAltoIP, provider.domainLocation,
+                   provider.domainId, provider.hostLocation, objectPostBody, None)
+
 
     def createHost(self, apiToken):
         # set authentication in the header
