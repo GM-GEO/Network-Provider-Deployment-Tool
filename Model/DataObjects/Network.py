@@ -38,8 +38,7 @@ class NetworkObject:
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.networkLocation)
 
-        return cls(url, name, value, description, groupMembership,
-                   objectPostBody, None)
+        return cls(url, groupMembership, objectPostBody, None)
 
     @classmethod
     def PaloAltNetwork(cls, provider: PaloAlto, name, value, description,
@@ -55,8 +54,7 @@ class NetworkObject:
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.objectLocation)
 
-        return cls(url, name, value, description, groupMembership,
-                   objectPostBody)
+        return cls(url, groupMembership, objectPostBody, None)
 
     def createNetwork(self, apiToken):
         # Set authentication in the header
