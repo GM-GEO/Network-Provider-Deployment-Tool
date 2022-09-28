@@ -47,16 +47,22 @@ class NetworkObject:
 
         objectPostBody = {}
 
-        objectPostBody['name'] = name
-        objectPostBody['type'] = 'network'
-        objectPostBody['value'] = value
-        objectPostBody['description'] = description
+        objectPostBody['@name'] = name
+        objectPostBody['location'] = 'vsys'
+        objectPostBody['@vsys'] = 'vsys1'
+        # objectPostBody['description'] = description
+        objectPostBody['ip-netmask'] = value
+
+        queryParameters = {}
+        queryParameters['name'] = name
+        queryParameters['location'] = 'vsys'
+        queryParameters['vsys'] = 'vsys1'
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.objectLocation)
 
         return cls(url, name, value, description, groupMembership,
-                   objectPostBody)
+                   objectPostBody, queryParameters)
 
     def createNetwork(self, apiToken):
         # Set authentication in the header
