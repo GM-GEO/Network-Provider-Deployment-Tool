@@ -19,7 +19,8 @@ class HostObject:
         self.objectUUID = ""
         self.groupMembership = groupMembership
 
-        self.creationURL = buildUrlForResource(providerIP, providerDomain,domainId,hostLocation)
+        self.creationURL = buildUrlForResource(providerIP, providerDomain,
+                                               domainId, hostLocation)
         self.objectPostBody = {}
         self.objectPostBody['name'] = name
         self.objectPostBody['type'] = 'host'
@@ -35,13 +36,12 @@ class HostObject:
                    provider.hostLocation)
 
     @classmethod
-    def PaloAltoHost(provider: PaloAlto, name, value, description,
-                     groupMembership):
+    def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
+                     description: str, groupMembership: str):
 
-        return HostObject(name, value, description, groupMembership,
-                          provider.fmcIP, provider.domainLocation,
-                          provider.domainId, provider.hostLocation)
-        # return cls(name, value, description, groupMembership, provider.)
+        return cls(name, value, description, groupMembership,
+                   provider.paloAltoIP, provider.domainLocation,
+                   provider.domainId, provider.hostLocation)
 
     def createHost(self, apiToken):
         # set authentication in the header
