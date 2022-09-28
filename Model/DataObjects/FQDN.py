@@ -1,3 +1,4 @@
+from typing import Dict
 import requests
 
 from Model.Providers.FMCConfig import FMC
@@ -8,34 +9,45 @@ from Model.Utilities.LoggingUtils import Logger_GetLogger
 
 class FQDNObject:
 
-    def __init__(self, resourceUrl, name, value, description, groupMembership):
+    def __init__(self, resourceUrl, groupMembership, postBody,
+                 queryParameters: Dict):
 
         self.creationURL = resourceUrl
-
+        self.objectPostBody = postBody
         self.objectUUID = ''
         self.groupMembership = groupMembership
-        self.objectPostBody = {}
 
-        self.objectPostBody['name'] = name
-        self.objectPostBody['type'] = 'fqdn'
-        self.objectPostBody['value'] = value
-        self.objectPostBody['description'] = description
+        if queryParameters:
+            self.queryParameters = queryParameters
 
     @classmethod
     def FMCFQDN(cls, provider: FMC, name, value, description, groupMembership):
-        """"""
+
+        objectPostBody = {}
+        objectPostBody['name'] = name
+        objectPostBody['type'] = 'fqdn'
+        objectPostBody['value'] = value
+        objectPostBody['description'] = description
+
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.objectLocation)
 
-        return cls(url, name, value, description, groupMembership)
+        return cls(url, groupMembership, objectPostBody, None)
 
     @classmethod
-    def PaloAltoFQDN(cls, provider: FMC, name, value, description, groupMembership):
+    def PaloAltoFQDN(cls, provider: FMC, name, value, description,
+                     groupMembership):
+
+        objectPostBody = {}
+        objectPostBody['name'] = name
+        objectPostBody['type'] = 'fqdn'
+        objectPostBody['value'] = value
+        objectPostBody['description'] = description
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.objectLocation)
 
-        return cls(url, name, value, description, groupMembership)
+        return cls(url, groupMembership, objectPostBody, None)
 
     def createFQDN(self, apiToken):
         #set authentication in the header
