@@ -1,3 +1,4 @@
+from typing import Dict
 import requests
 from requests.auth import HTTPBasicAuth
 import csv
@@ -13,35 +14,44 @@ class HostObject:
     # optional attributes
     overridable = False
 
-    def __init__(self, name, value, description, groupMembership, providerIP,
-                 providerDomain, domainId, hostLocation):
+    def __init__(self, groupMembership, providerIP, providerDomain, domainId,
+                 hostLocation, postBody, queryParameters: Dict):
 
         self.objectUUID = ""
+        self.objectPostBody = postBody
         self.groupMembership = groupMembership
+        if queryParameters:
+            self.queryParameters = queryParameters
 
         self.creationURL = buildUrlForResource(providerIP, providerDomain,
                                                domainId, hostLocation)
-        self.objectPostBody = {}
-        self.objectPostBody['name'] = name
-        self.objectPostBody['type'] = 'host'
-        self.objectPostBody['value'] = value
-        self.objectPostBody['description'] = description
-
+                                               
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
                 groupMembership: str):
 
-        return cls(name, value, description, groupMembership, provider.fmcIP,
-                   provider.domainLocation, provider.domainId,
-                   provider.hostLocation)
+        objectPostBody = {}
+        objectPostBody['name'] = name
+        objectPostBody['type'] = 'host'
+        objectPostBody['value'] = value
+        objectPostBody['description'] = description
+
+        return cls(groupMembership, provider.fmcIP, provider.domainLocation,
+                   provider.domainId, provider.hostLocation, objectPostBody, None)
 
     @classmethod
     def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
                      description: str, groupMembership: str):
 
-        return cls(name, value, description, groupMembership,
-                   provider.paloAltoIP, provider.domainLocation,
-                   provider.domainId, provider.hostLocation)
+        objectPostBody = {}
+        objectPostBody['name'] = name
+        objectPostBody['type'] = 'host'
+        objectPostBody['value'] = value
+        objectPostBody['description'] = description
+
+        return cls(groupMembership, provider.paloAltoIP, provider.domainLocation,
+                   provider.domainId, provider.hostLocation, objectPostBody, None)
+
 
     def createHost(self, apiToken):
         # set authentication in the header
