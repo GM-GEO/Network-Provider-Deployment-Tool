@@ -79,12 +79,10 @@ class FMC(Provider):
         url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
         response = requests.post(
                 url,
-                auth=HTTPBasicAuth(username, password),
+                auth=HTTPBasicAuth("apiuser", "JR8A54gWFc&#IVxIvoP91@0mWhQ51"),
                 data={},
                 verify=False
             )
-
-        print(response.headers)
 
         if response.headers['DOMAIN_UUID']:
             self.domainId = response.headers['DOMAIN_UUID']
@@ -93,6 +91,32 @@ class FMC(Provider):
 
         self.logger.info("Auth token found and set")
         return response.headers['X-auth-access-token']
+
+    def CheckAndAddGroup(self, groupName: str):
+        groupExists = ObjectGroup.GroupObject.checkIfGroupExists(groupName, self.fmcIP, self.domainLocation, self.domainId, self.apiToken)
+        createGroupFlag = None
+        statusCode = None
+        groupType = None
+
+        if groupExists == False:
+            while not checkYesNoResponse(createGroupFlag):
+                self.logger.info("The group: " + groupName  + " was not found, create this group? (Yes/No)")
+                createGroupFlag = str(input())
+
+            if createGroupFlag == YesNoEnum.YES.value:
+
+                while not checkValidGroupType(groupType):
+                    self.logger.info("Select the Group Type for the new group:")
+                    self.logger.info(GroupTypeEnum.list())
+                    groupType = str(input())
+
+                statusCode = ObjectGroup.GroupObject.createNewGroup(groupName, groupType, self.fmcIP, self.domainLocation, self.domainId, self.apiToken)
+                self.logger.info("The group:" + groupName + " was posted to FMC. {Status Code: " + str(statusCode) + "Type: " + groupType + "}")
+                pass
+            pass
+        else :
+            self.logger.info("Host Group Found. {Group Name:" + groupName +"}")
+        
 
     def __addHost(self, name: str, value: str, description='', group=''):
         """
@@ -107,52 +131,39 @@ class FMC(Provider):
         Returns:
             None: The Host object is appended to the Host Object List
         """
-        
-        #groupExists = ObjectGroup.GroupObject.checkIfGroupExists(group, self.fmcIP, self.domainLocation, self.domainId, self.apiToken)
-        #createGroupFlag = None
-        #statusCode = None
-        #groupType = None
 
-        #if groupExists == False:
-        #    while not checkYesNoResponse(createGroupFlag):
-        #        self.logger.info("The group: " + group  + " was not found, create this group? (Yes/No)")
-        #        createGroupFlag = str(input())
-
-        #    if createGroupFlag == YesNoEnum.YES.value:
-
-        #        while not checkValidGroupType(groupType):
-        #            self.logger.info("Select the Group Type for the new group:")
-        #            self.logger.info(GroupTypeEnum.list())
-        #            groupType = str(input())
-
-        #        statusCode = ObjectGroup.GroupObject.createNewGroup(group, groupType, self.fmcIP, self.domainLocation, self.domainId, self.apiToken)
-        #        self.logger.info("The group:" + group + " was posted to FMC. {Status Code: " + statusCode + "Type: " + groupType + "}")
-        #        pass
-        #    pass
-        #else :
-        #    self.logger.info("Host Group Found. {Group Name:" + group +"}")
-
+        #if group:
+        #    self.CheckAndAddGroup(group)
         
         hostObj = Host.HostObject.FMCHost(self, name, value, description, group)    
-        self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
+        self.logger.info("Host added. {Name: " + name + ", Value: " + group + "}")
         return self.hostObjectList.append(hostObj)
 
     def __addNetwork(self, name: str, value: str, description='', group=''):
 
-        networkObj = Network.NetworkObject.FMCNetwork(self, name, value, description, group)
+        #if group:
+        #    self.CheckAndAddGroup(group)
         
+        networkObj = Network.NetworkObject.FMCNetwork(self, name, value, description, group)
+        self.logger.info("Network added. {Name: " + name + ", Value: " + value + "}")
         return self.networkObjectList.append(networkObj)
 
     def __addURL(self, name, url, description='', group=''):
 
+        #if group:
+        #    self.CheckAndAddGroup(group)
+
         urlObj = URL.URLObject.FMCUrlObject(self, name, url, description, group)
-        
+        self.logger.info("URL added. {Name: " + name + ", Value: " + url + "}")
         return self.URLObjectList.append(urlObj)
 
     def __addFQDN(self, name, value, description='', group=''):
 
-        fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
+        #if group:
+        #    self.CheckAndAddGroup(group)
 
+        fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
+        self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
 
     def __createGroupMembershipLists(self, type):
@@ -167,6 +178,7 @@ class FMC(Provider):
                 groupName = host.getGroupMembership()
 
                 if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                    self.logger.info("Group Not Found, Added to as new List. {Host: " + hostName + ", GroupName: " + groupName + "}")
                     groupDict[groupName] = []
                     groupDict[groupName].append({
                         'type': 'Host',
@@ -174,6 +186,7 @@ class FMC(Provider):
                         'name': hostName
                     })
                 else:
+                    self.logger.info("Group Discovered and Added. {Host: " + hostName + ", GroupName: " + groupName + "}")
                     groupDict[groupName].append({
                         'type': 'Host',
                         'id': hostID,
@@ -187,6 +200,7 @@ class FMC(Provider):
                 groupName = network.getGroupMembership()
 
                 if groupName not in groupDict:
+                    self.logger.info("Group Not Found, Added as new to List. {Network: " + networkName + ", GroupName: " + groupName + "}")
                     groupDict[groupName] = []
                     groupDict[groupName].append({
                         'type': 'Network',
@@ -194,6 +208,7 @@ class FMC(Provider):
                         'name': networkName
                     })
                 else:
+                    self.logger.info("Group Discovered and Added. {Network: " + networkName + ", GroupName: " + groupName + "}")
                     groupDict[groupName].append({
                         'type': 'Network',
                         'id': networkID,
@@ -208,6 +223,7 @@ class FMC(Provider):
                 groupName = url.getGroupMembership()
 
                 if groupName not in groupDict:
+                    self.logger.info("Group Not Found, Added as new to List. {URL: " + urlName + ", GroupName: " + groupName + "}")
                     groupDict[groupName] = []
                     groupDict[groupName].append({
                         'type': 'Url',
@@ -216,13 +232,14 @@ class FMC(Provider):
                     })
 
                 else:
+                    self.logger.info("Group Discovered and Added. {URL: " + urlName + ", GroupName: " + groupName + "}")
                     groupDict[groupName].append({
                         'type': 'Url',
                         'id': urlID,
                         'name': urlName
                     })
 
-        print(":GroupDict: ", groupDict)
+        self.logger.info("Group Membership Lists Resolved. {Type: " + type +"}")
 
         return groupDict
 
@@ -242,10 +259,49 @@ class FMC(Provider):
         self.logger.info("Group deleted. {Id: " + id + ", Type: " + type + "}")
         return networks.status_code
 
+    def appendToGroup(self, groupId, groupType, objectName, objectId, objectType):
+            groupLocation = self.networkGroupLocation if groupType == "network" or "NetworkGroup" else self.urlGroupLocation
+
+            url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, groupLocation, groupId)
+
+            group = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            members = group.json()['objects']
+            idgrp = group.json()['id']
+            namegrp = group.json()['name']
+            typegrp = group.json()['type']
+
+            newObject = {}
+            newObject["name"] = objectName
+            newObject["id"] = objectId
+            newObject["type"] = objectType
+
+            members.append(newObject)
+
+            group = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            payload = {"objects": members, "id": idgrp, "name": namegrp, "type": typegrp}
+            response = requests.put(
+                    url=url,
+                    headers=self.authHeader,
+                    data=payload.json(),
+                    verify=False
+            )
+
+            return response.status_code  
+
+
     def createGroups(self, type):
 
         groupDict = self.__createGroupMembershipLists(type)
-        print("All groups list: ", self.allGroupsList)
 
         for group in groupDict:
             if type == 'host':
@@ -659,7 +715,10 @@ class FMC(Provider):
             )
 
             network = network.json()
-            print("Network details: ", network)
+
+            if network and network["name"]:
+                self.logger.info("Network retrieved. {Name: " + network['name'] + ", Value: " + network['value'] + "}")
+
             returnList.append([network['name'], network['id'],
                                network['value'], network['type'], network['description']])
 

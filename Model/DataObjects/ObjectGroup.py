@@ -1,7 +1,9 @@
+import json
 import requests
 from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
 
 from Model.Utilities.ListUtils import contains
+from Model.Utilities.LoggingUtils import Logger_GetLogger
 
 
 class GroupObject:
@@ -28,6 +30,9 @@ class GroupObject:
             self.postBody['type'] = "NetworkGroup"
 
     def createGroup(self, apiToken):
+
+        logger = Logger_GetLogger()
+
         #Set authentication in the header
         authHeaders = {"X-auth-access-token": apiToken}
 
@@ -38,9 +43,7 @@ class GroupObject:
 
         if response.status_code <= 299 and response.status_code >= 200:
             self.groupUUID = response.json()['id']
-
-        print("Group creation response: ", response.json())
-
+            logger.info("Group created successfully. {" + self.groupUUID + "}")
         # print(response.json()['error']['messages'][0]['description'])
 
         return response.status_code
@@ -62,20 +65,24 @@ class GroupObject:
         Returns:
             Bool: Returns if the group name was found in the list of returned objects
         """
-
-        groupTypeList = ["host", "network"]
+        logger = Logger_GetLogger()
+        groupTypeList = ["host", "network", "url"]
         groupExists = False
         authHeaders = {"X-auth-access-token": apiToken}
 
         for groupType in groupTypeList:
+            logger.info("Checking Group Types for Group. {Group Name: " +
+                        groupName + ", Group Type: " + groupType + "}")
             url = 'https://' + ipAddress + domainLocation + domainId + '/object/' + groupType + "groups"
-
             response = requests.get(url=url, headers=authHeaders, verify=False)
 
-            groups = response.json()['items']
-            if contains(groups, lambda x: x.name == groupName):
-                groupExists = True
-                continue
+            if response.status_code <= 299 and response.status_code >= 200:
+                groups = response.json()['items']
+                if contains(groups, lambda x: x["name"] == groupName):
+                    logger.info("Group found. {Group Name: " + groupName +
+                                ", Group Type: " + groupType + "}")
+                    groupExists = True
+                    break
 
         return groupExists
 
@@ -84,9 +91,11 @@ class GroupObject:
 
         postBody = {}
         postBody['name'] = groupName
-        postBody['type'] = groupType.value
+        postBody['type'] = groupType
+        postBody['objects'] = []
+        postBody['literals'] = []
 
-        url = 'https://' + ipAddress + domainLocation + domainId + '/object/' + groupType.value + "groups"
+        url = 'https://' + ipAddress + domainLocation + domainId + '/object/' + str(groupType).lower() + "s"
         authHeaders = {"X-auth-access-token": apiToken}
 
         response = requests.post(url=url,
