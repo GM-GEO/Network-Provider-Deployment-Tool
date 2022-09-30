@@ -1,4 +1,6 @@
 import logging
+import urllib3
+
 
 def Create_Logger(logPath: str, fileName: str):
     """Creates a logger that both exports to the file specified in the fileName
@@ -14,9 +16,12 @@ def Create_Logger(logPath: str, fileName: str):
 
     qualifiedFileName = "{0}/{1}.log".format(logPath, fileName)
 
-    logFormatter = logging.Formatter("%(asctime)s  [%(levelname)-5.5s]  %(message)s")
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    logFormatter = logging.Formatter(
+        "%(asctime)s  [%(levelname)-5.5s]  %(message)s")
     rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.DEBUG)
+    rootLogger.setLevel(logging.INFO)
 
     fileHandler = logging.FileHandler(qualifiedFileName)
     fileHandler.setFormatter(logFormatter)
@@ -28,11 +33,13 @@ def Create_Logger(logPath: str, fileName: str):
 
     return rootLogger
 
+
 def Logger_AddBreakLine():
     """Creates a string of asterisks to serve as a ling break in the log file
     """
     rootLogger = logging.getLogger()
     rootLogger.info("*****************************************************")
+
 
 def Logger_GetLogger():
     """Retrieves the current Logger object
