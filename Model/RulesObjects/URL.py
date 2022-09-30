@@ -37,27 +37,39 @@ class URLObject:
         return cls(url, groupMembership, objectPostBody, None)
 
     @classmethod
-    def PaloAltoUrlObject(cls, provider: FMC, name, value, description,
+    def PaloAltoUrlObject(cls, provider: PaloAlto, name, value, description,
                           groupMembership):
 
         objectPostBody = {}
-        objectPostBody['name'] = name
-        objectPostBody['type'] = 'url'
-        objectPostBody['url'] = value
-        objectPostBody['description'] = description
+        objectPostBody['entry'] = {}
 
-        url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
-                                  provider.domainId, provider.urlLocation)
+        objectPostBody['entry']['@name'] = name
+        objectPostBody['entry']['@location'] = 'vsys'
+        objectPostBody['entry']['@vsys'] = 'vsys1'
+        objectPostBody['entry']['list'] = {}
+        objectPostBody['entry']['list']['member'] = value
+        objectPostBody['entry']['type'] = 'URL List'
 
-        return cls(url, groupMembership, objectPostBody, None)
+        print("URL Body: ", objectPostBody)
+
+        queryParameters = {}
+        queryParameters['name'] = name
+        queryParameters['location'] = 'vsys'
+        queryParameters['vsys'] = 'vsys1'
+
+        url = buildUrlForResource(provider.paloAltoIP, provider.domainLocation,
+                                  '', provider.urlLocation)
+
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
     def createURL(self, apiToken):
         #Setting authentication in header
-        authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-auth-access-token": apiToken}
         logger = Logger_GetLogger()
 
         response = requests.post(url=self.creationURL,
-                                 headers=authHeaders,
+                                 headers=apiToken,
+                                 params=self.queryParameters,
                                  json=self.objectPostBody,
                                  verify=False)
 
@@ -65,7 +77,10 @@ class URLObject:
             logger.info(
                 "URL object created within successful status range. {Status Code"
                 + str(response.status_code) + "}")
-            self.objectUUID = response.json()['id']
+            if 'id' in response.json().keys():
+                self.objectUUID = response.json()['id']
+
+        print("URL response: ", response.json())
 
         return response.status_code
 
@@ -75,8 +90,14 @@ class URLObject:
     def getName(self):
         return self.objectPostBody['name']
 
+    def getPName(self):
+        return self.objectPostBody['entry']['@name']
+
     def getValue(self):
         return self.objectPostBody['url']
+
+    def getPValue(self):
+        return self.objectPostBody['entry']['list']['member']
 
     def getType(self):
         return self.objectPostBody['type']

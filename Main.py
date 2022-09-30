@@ -52,7 +52,24 @@ def main():
         parsedObjectCSV = readCSVFromFile(objectFile)
         parsedRuleCSV = readCSVFromFile(ruleFile)
 
-        print(parsedObjectCSV)
+        for index, object in parsedObjectCSV.items():
+            paloAlto.addObject('',
+                             object['type'],
+                             object['name'],
+                             object['value'],
+                             group=object['group'])
+
+        # print("Object list Network: ", paloAlto.getObjectList('network'))
+        # print("Object list FQDN: ", paloAlto.getObjectList('fqdn'))
+        # print("Object list Url: ", paloAlto.getObjectList('host'))
+        # paloAlto.applyObjectList('host')
+        # print("FQDNs: ", paloAlto.getObjectList('fqdn'))
+        # paloAlto.applyObjectList('fqdn')
+        print("Url groups: ", paloAlto.createGroupMembershipLists('url'))
+
+
+
+        # print(parsedObjectCSV)
         # paloAlto.getNetworks()
         Logger_AddBreakLine()
 
