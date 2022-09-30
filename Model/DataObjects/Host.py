@@ -14,18 +14,18 @@ class HostObject:
     # optional attributes
     overridable = False
 
-    def __init__(self, groupMembership, providerIP, providerDomain, domainId,
-                 hostLocation, postBody, queryParameters: Dict):
-
-        self.objectUUID = ""
+    def __init__(self, resourceURL, groupMembership, postBody,
+                 queryParameters: Dict):
+        self.creationURL = resourceURL
         self.objectPostBody = postBody
+        self.objectUUID = ''
         self.groupMembership = groupMembership
+
         if queryParameters:
             self.queryParameters = queryParameters
+            pass
 
-        self.creationURL = buildUrlForResource(providerIP, providerDomain,
-                                               domainId, hostLocation)
-                                               
+
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
                 groupMembership: str):
@@ -44,29 +44,42 @@ class HostObject:
                      description: str, groupMembership: str):
 
         objectPostBody = {}
-        objectPostBody['name'] = name
-        objectPostBody['type'] = 'host'
-        objectPostBody['value'] = value
-        objectPostBody['description'] = description
+        objectPostBody['entry'] = {}
 
-        return cls(groupMembership, provider.paloAltoIP, provider.domainLocation,
-                   provider.domainId, provider.hostLocation, objectPostBody, None)
+        objectPostBody['entry']['@name'] = name
+        objectPostBody['entry']['@location'] = 'vsys'
+        objectPostBody['entry']['@vsys'] = 'vsys1'
+        objectPostBody['entry']['ip-netmask'] = value
+
+        queryParameters = {}
+        queryParameters['name'] = name
+        queryParameters['location'] = 'vsys'
+        queryParameters['vsys'] = 'vsys1'
+
+        url = buildUrlForResource(provider.paloAltoIP, provider.domainLocation,
+                                  '', provider.networkLocation)
+
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
 
     def createHost(self, apiToken):
         # set authentication in the header
-        authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-auth-access-token": apiToken}
 
         response = requests.post(url=self.creationURL,
-                                 headers=authHeaders,
+                                 headers=apiToken,
+                                 params=self.queryParameters,
                                  json=self.objectPostBody,
                                  verify=False)
 
         # print(response.json()['id'])
 
         if response.status_code <= 299 and response.status_code >= 200:
-            self.objectUUID = response.json()['id']
+            if 'id' in response.json().keys():
+                self.objectUUID = response.json()['id']
             # print("Id: ", self.objectUUID)
+
+        print("Host body: ", response.json())
 
         # self.getAllHosts(self.apiToken)
         # print(response.json()['error']['messages'][0]['description'])
@@ -100,6 +113,9 @@ class HostObject:
     def getName(self):
         return self.objectPostBody['name']
 
+    def getPName(self):
+        return self.objectPostBody['entry']['@name']
+
     def getType(self):
         return self.objectPostBody['type']
 
@@ -108,6 +124,9 @@ class HostObject:
 
     def getValue(self):
         return self.objectPostBody['value']
+
+    def getPValue(self):
+        return self.objectPostBody['entry']['ip-netmask']
 
     def getDescription(self):
         return self.objectPostBody['description']

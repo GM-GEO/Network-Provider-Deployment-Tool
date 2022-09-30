@@ -39,32 +39,49 @@ class FQDNObject:
                      groupMembership):
 
         objectPostBody = {}
-        objectPostBody['name'] = name
-        objectPostBody['type'] = 'fqdn'
-        objectPostBody['value'] = value
-        objectPostBody['description'] = description
+        objectPostBody['entry'] = {}
 
-        url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
-                                  provider.domainId, provider.objectLocation)
+        objectPostBody['entry']['@name'] = name
+        objectPostBody['entry']['@location'] = 'vsys'
+        objectPostBody['entry']['@vsys'] = 'vsys1'
+        objectPostBody['entry']['fqdn'] = value
 
-        return cls(url, groupMembership, objectPostBody, None)
+        queryParameters = {}
+        queryParameters['name'] = name
+        queryParameters['location'] = 'vsys'
+        queryParameters['vsys'] = 'vsys1'
+
+        url = buildUrlForResource(provider.paloAltoIP, provider.domainLocation,
+                                  '', provider.networkLocation)
+
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
     def createFQDN(self, apiToken):
         #set authentication in the header
-        authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-auth-access-token": apiToken}
 
         response = requests.post(url=self.creationURL,
-                                 headers=authHeaders,
+                                 headers=apiToken,
+                                 params=self.queryParameters,
                                  json=self.objectPostBody,
                                  verify=False)
 
         if response.status_code <= 299 and response.status_code >= 200:
-            self.objectUUID = response.json()['id']
+            if 'id' in response.json().keys():
+                self.objectUUID = response.json()['id']
+
+        print("FQDN response: ", response.json())
 
         return response.status_code
 
     def getName(self):
         return self.objectPostBody['name']
+
+    def getPName(self):
+        return self.objectPostBody['entry']['@name']
+
+    def getPValue(self):
+        return self.objectPostBody['entry']['fqdn']
 
     def getID(self):
         return self.objectUUID

@@ -59,13 +59,17 @@ def main():
                              object['value'],
                              group=object['group'])
 
-        print("Object list Network: ", paloAlto.getObjectList('network'))
-        print("Object list FQDN: ", paloAlto.getObjectList('fqdn'))
-        print("Object list Url: ", paloAlto.getObjectList('url'))
-        paloAlto.applyObjectList('network')
+        # print("Object list Network: ", paloAlto.getObjectList('network'))
+        # print("Object list FQDN: ", paloAlto.getObjectList('fqdn'))
+        # print("Object list Url: ", paloAlto.getObjectList('host'))
+        # paloAlto.applyObjectList('host')
+        # print("FQDNs: ", paloAlto.getObjectList('fqdn'))
+        # paloAlto.applyObjectList('fqdn')
+        print("Url groups: ", paloAlto.createGroupMembershipLists('url'))
 
 
-        print(parsedObjectCSV)
+
+        # print(parsedObjectCSV)
         # paloAlto.getNetworks()
         Logger_AddBreakLine()
 

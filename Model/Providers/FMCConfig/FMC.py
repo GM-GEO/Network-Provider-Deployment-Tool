@@ -406,7 +406,7 @@ class FMC(Provider):
                                     result = self.deleteHosts(i[1])
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allHostObjectList.remove(i)
-                                    result = host.createHost(self.apiToken)
+                                    result = host.createHost(self.authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allHostObjectList.append([host.getName(), host.getUUID(
                                         ), host.getValue(), host.getType(), host.getDescription()])
@@ -416,7 +416,7 @@ class FMC(Provider):
                     print(flag_host)
                     if flag_host == True:
                         print("Condition 2", host.getName())
-                        result = host.createHost(self.apiToken)
+                        result = host.createHost(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allHostObjectList.append([host.getName(), host.getUUID(
                             ), host.getValue(), host.getType(), host.getDescription()])
@@ -447,7 +447,7 @@ class FMC(Provider):
                                         self.allNetworkObjectList.remove(i)
 
                                     result = network.createNetwork(
-                                        self.apiToken)
+                                        self.authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.append([network.getName(), network.getUUID(
                                         ), network.getValue(), network.getType(), network.getDescription()])
@@ -493,7 +493,7 @@ class FMC(Provider):
                                     result = self.deleteUrls(i[1])
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allUrlObjectList.remove(i)
-                                    result = url.createURL(self.apiToken)
+                                    result = url.createURL(self.authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allUrlObjectList.append([url.getName(), url.getUUID(
                                         ), url.getValue(), url.getType(), url.getDescription()])
@@ -506,7 +506,7 @@ class FMC(Provider):
                     print(flag_url)
                     if flag_url == True:
                         print("Condition 2", url.getName())
-                        result = url.createURL(self.apiToken)
+                        result = url.createURL(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allUrlObjectList.append([url.getName(), url.getUUID(
                             ), url.getValue(), url.getType(), url.getDescription()])
@@ -516,7 +516,7 @@ class FMC(Provider):
 
             case "fqdn":
                 for fqdn in self.FQDNObjectList:
-                    result = fqdn.createFQDN(self.apiToken)
+                    result = fqdn.createFQDN(self.authHeader)
 
                     if int(result) > 399:
                         return result

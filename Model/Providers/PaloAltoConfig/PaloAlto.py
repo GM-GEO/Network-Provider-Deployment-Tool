@@ -33,7 +33,7 @@ class PaloAlto(Provider):
         self.portLocation = "/Objects/Services"
         self.urlCategoryLocation = "/Objects/CustomURLCategories" #Check this
         self.applicationLocation = "/Objects/Applications"
-        self.hostLocation = "/object/hosts"
+        # self.hostLocation = "/object/hosts"
 
         self.filePolicyLocation = "/policy/filepolicies"
 
@@ -150,8 +150,10 @@ class PaloAlto(Provider):
         )
 
         returnList = []
+        list_networks = {}
 
-        list_networks = response.json()['result']['entry']
+        if response.json()['result']['entry']:
+            list_networks = response.json()['result']['entry']
         for network in list_networks:
             temp = [network['@name'], network['@location'], network['@vsys'], network['protocol']]
             returnList.append(temp)
@@ -194,10 +196,9 @@ class PaloAlto(Provider):
         print("Applications: ", returnList)
         return returnList
 
-    # def __addHost(self, name: str, value: str, description='', group=''):
-    #     hostObj = Host.HostObject.PaloAltHost(self, name, value, description, group)
-    #     # self.logger.info("Host added. {Name: " + name + ", Group: " + group + "}")
-    #     return self.hostObjectList.append(hostObj)
+    def __addHost(self, name: str, value: str, description='', group=''):
+        hostObj = Host.HostObject.PaloAltoHost(self, name, value, description, group)
+        return self.hostObjectList.append(hostObj)
 
     def __addNetwork(self, name, value, description, group):
 
@@ -219,8 +220,8 @@ class PaloAlto(Provider):
 
     def addObject(self, domain, type, name, value, description='', group=''):
 
-        # if type == 'host':
-        #     self.__addHost(name, value, description, group)
+        if type == 'host':
+            self.__addHost(name, value, description, group)
 
         if type == 'network':
             self.__addNetwork(name, value, description, group)
@@ -237,29 +238,207 @@ class PaloAlto(Provider):
     def getObjectList(self, objectType):
 
         match objectType:
-            # case "host":
-            #     return self.hostObjectList
+            case "host":
+                return self.hostObjectList
             case "network":
                 return self.networkObjectList
             case "url":
                 return self.URLObjectList
             case "fqdn":
                 return self.FQDNObjectList
-            case "port":
-                return self.portObjectList
+            # case "port":
+            #     return self.portObjectList
             case "securityzone":
                 return self.securityZoneObjectList
             case _:
                 return None
 
+    def deleteNetwork(self, name):
+        """
+        Deletes address/network objects in Palo Alto. It can delete the addresses of all types,
+        that is of type 'ip-netmask', 'fqdn', 'ip-range', and 'ip-wildcard' given the correct name is passed as parameter.
+        :param name: The name of the address object to be deleted
+        :return: status code of the response
+        """
+        queryparams = {}
+        queryparams['location'] = 'vsys'
+        queryparams['vsys'] = 'vsys1'
+        queryparams['name'] = name
+
+        url = buildUrlForResource(self.paloAltoIP, self.domainLocation, '', self.networkLocation)
+
+        response = requests.delete(
+            url=url,
+            headers=self.authHeader,
+            params=queryparams,
+            verify=False
+        )
+
+        return response.status_code
+
+    def deleteURL(self, name):
+        queryparams = {}
+        queryparams['location'] = 'vsys'
+        queryparams['vsys'] = 'vsys1'
+        queryparams['name'] = name
+
+        url = buildUrlForResource(self.paloAltoIP, self.domainLocation, '', self.urlLocation)
+
+        response = requests.delete(
+            url=url,
+            headers=self.authHeader,
+            params=queryparams,
+            verify=False
+        )
+
+        return response.status_code
+
     def applyObjectList(self, listType):
         match listType:
             case "network":
                 for network in self.networkObjectList:
-                    print("Name: ", network.getName(), "Value: ", network.getValue(), "Group: ", network.getGroupMembership(), "Description: ", network.getDescription())
+                    flag_network = True
+                    print("Name: ", network.getPName(), "Value: ", network.getPValue(), "Group: ", network.getGroupMembership())
                     for i in self.allNetworkObjectList:
-                        if network.getName() == i[0]:
-                            print("Match found.")
+                        if network.getPName() == i[0]:
+                            flag_network = False
+                            print("Match found")
+                            print(i)
+                            if network.getPName() == i[0] and network.getPValue() == i[4] and i[3] == 'ip-netmask':
+                                print("False 1 loop")
+                                print("An object with the exact same name, type and value exists, so no need to recreate it.")
+                            else:
+                                print("There exists a different object with the same name. Do you want to delete the existing object and create the current one? Please answer Y/N: ")
+                                ans = str(input())
+                                if ans == 'Y':
+                                    del_response = self.deleteNetwork(network.getPName())
+                                    if del_response < 299:
+                                        self.allNetworkObjectList.remove(i)
+                                    create_response = network.createNetwork(self.authHeader)
+                                    if create_response < 299:
+                                        self.allNetworkObjectList.append([network.getPName(), 'vsys', 'vsys1', 'ip-netmask', network.getPValue()])
+                    if flag_network == True:
+                        print("True loop")
+                        create_response = network.createNetwork(self.authHeader)
+                        if create_response < 299:
+                            self.allNetworkObjectList.append(
+                                [network.getPName(), 'vsys', 'vsys1', 'ip-netmask', network.getPValue()])
+
+            case "fqdn":
+                for fqdn in self.FQDNObjectList:
+                    flag_fqdn = True
+                    print("Name: ", fqdn.getPName(), "Value: ", fqdn.getPValue(), "Group: ", fqdn.getGroupMembership())
+                    for i in self.allNetworkObjectList:
+                        if fqdn.getPName() == i[0]:
+                            flag_fqdn = False
+                            print("Match found")
+                            print(i)
+                            if fqdn.getPName() == i[0] and fqdn.getPValue() == i[4] and i[3] == 'fqdn':
+                                print("False 1 loop")
+                                print("An object with the exact same name, type and value exists, so no need to recreate it.")
+                            else:
+                                print(
+                                    "There exists a different object with the same name. Do you want to delete the existing object and create the current one? Please answer Y/N: ")
+                                ans = str(input())
+                                if ans == 'Y':
+                                    del_response = self.deleteNetwork(fqdn.getPName())
+                                    if del_response < 299:
+                                        self.allNetworkObjectList.remove(i)
+                                    create_response = fqdn.createFQDN(self.authHeader)
+                                    if create_response < 299:
+                                        self.allNetworkObjectList.append(
+                                            [fqdn.getPName(), 'vsys', 'vsys1', 'fqdn', fqdn.getPValue()])
+                    if flag_fqdn == True:
+                        print("True loop")
+                        create_response = fqdn.createFQDN(self.authHeader)
+                        if create_response < 299:
+                            self.allNetworkObjectList.append(
+                                [fqdn.getPName(), 'vsys', 'vsys1', 'fqdn', fqdn.getPValue()])
+
+            case "url":
+                for url in self.URLObjectList:
+                    flag_fqdn = True
+                    print("Name: ", url.getPName(), "Value: ", url.getPValue(), "Group: ",
+                          url.getGroupMembership())
+                    for i in self.allUrlObjectList:
+                        if url.getPName() == i[0]:
+                            flag_fqdn = False
+                            print("Match found")
+                            print("i value: ", i)
+                            if url.getPName() == i[0] and url.getPValue() == i[3]:
+                                print("False 1 loop")
+                                print(
+                                    "An object with the exact same name, type and value exists, so no need to recreate it.")
+                            else:
+                                print(
+                                    "There exists a different object with the same name. Do you want to delete the existing object and create the current one? Please answer Y/N: ")
+                                ans = str(input())
+                                if ans == 'Y':
+                                    del_response = self.deleteURL(url.getPName())
+                                    if del_response < 299:
+                                        self.allUrlObjectList.remove(i)
+                                    create_response = url.createURL(self.authHeader)
+                                    if create_response < 299:
+                                        self.allUrlObjectList.append(
+                                            [url.getPName(), 'vsys', 'vsys1', url.getPValue(), 'URL List'])
+                    if flag_fqdn == True:
+                        print("True loop")
+                        create_response = url.createURL(self.authHeader)
+                        if create_response < 299:
+                            self.allUrlObjectList.append(
+                                [url.getPName(), 'vsys', 'vsys1', url.getPValue(), 'URL list'])
+
+            case "host":
+                for host in self.hostObjectList:
+                    flag_host = True
+                    print("Name: ", host.getPName(), "Value: ", host.getPValue(), "Group: ",
+                          host.getGroupMembership())
+                    for i in self.allNetworkObjectList:
+                        if host.getPName() == i[0]:
+                            flag_host = False
+                            print("Match found")
+                            print(i)
+                            if host.getPName() == i[0] and host.getPValue() == i[4] and i[3] == 'ip-netmask':
+                                print("False 1 loop")
+                                print(
+                                    "An object with the exact same name, type and value exists, so no need to recreate it.")
+                            else:
+                                print(
+                                    "There exists a different object with the same name. Do you want to delete the existing object and create the current one? Please answer Y/N: ")
+                                ans = str(input())
+                                if ans == 'Y':
+                                    del_response = self.deleteNetwork(host.getPName())
+                                    if del_response < 299:
+                                        self.allNetworkObjectList.remove(i)
+                                    create_response = host.createHost(self.authHeader)
+                                    if create_response < 299:
+                                        self.allNetworkObjectList.append([host.getPName(), 'vsys', 'vsys1', 'ip-netmask', host.getPValue()])
+                    if flag_host == True:
+                        print("True loop")
+                        create_response = host.createHost(self.authHeader)
+                        if create_response < 299:
+                            self.allNetworkObjectList.append(
+                                [host.getPName(), 'vsys', 'vsys1', 'ip-netmask', host.getPValue()])
+
+    def createGroupMembershipLists(self, type):
+        groupDict = {}
+        if type == 'url':
+            for url in self.URLObjectList:
+                urlName = url.getGroupMembership()
+                if urlName not in groupDict:
+                    groupDict[urlName] = []
+                    groupDict[urlName].append(url.getPValue())
+
+                else:
+                    groupDict[urlName].append(url.getPValue())
+
+        return groupDict
+
+    def createGroups(self, type):
+        groupDict = self.createGroupMembershipLists(type)
+
+
+
 
 
 

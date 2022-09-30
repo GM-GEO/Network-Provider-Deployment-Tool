@@ -197,8 +197,7 @@ class AccessPolicyObject:
 
         # create body for post request
         postBody = {}
-        postBody[
-            'action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
+        postBody['action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
         postBody['enabled'] = True
         postBody['type'] = 'AccessRule'
         postBody['name'] = csvRow['name']
