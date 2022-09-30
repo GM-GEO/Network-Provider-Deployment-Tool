@@ -135,7 +135,7 @@ def main():
 
         for index, rule in parsedRuleCSV.items():
             result = labFMC.createAccessRule(rule)
-            log.info("Rule creation: " + result)
+            log.info("Rule creation: " + str(result))
 
         pass
 

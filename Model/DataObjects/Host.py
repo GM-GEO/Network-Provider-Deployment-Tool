@@ -25,7 +25,6 @@ class HostObject:
             self.queryParameters = queryParameters
             pass
 
-
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
                 groupMembership: str):
@@ -36,8 +35,10 @@ class HostObject:
         objectPostBody['value'] = value
         objectPostBody['description'] = description
 
-        return cls(groupMembership, provider.fmcIP, provider.domainLocation,
-                   provider.domainId, provider.hostLocation, objectPostBody, None)
+        url = buildUrlForResource(provider.fmcIP, provider.domainLocation, '',
+                                  provider.networkLocation)
+
+        return cls(url, groupMembership, objectPostBody, None)
 
     @classmethod
     def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
@@ -60,7 +61,6 @@ class HostObject:
                                   '', provider.networkLocation)
 
         return cls(url, groupMembership, objectPostBody, queryParameters)
-
 
     def createHost(self, apiToken):
         # set authentication in the header

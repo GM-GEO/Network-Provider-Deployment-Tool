@@ -79,7 +79,7 @@ class FMC(Provider):
         url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
         response = requests.post(
                 url,
-                auth=HTTPBasicAuth(username, password),
+                auth=HTTPBasicAuth("apiuser", "JR8A54gWFc&#IVxIvoP91@0mWhQ51"),
                 data={},
                 verify=False
             )

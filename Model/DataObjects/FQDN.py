@@ -30,7 +30,7 @@ class FQDNObject:
         objectPostBody['description'] = description
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
-                                  provider.domainId, provider.objectLocation)
+                                  provider.domainId, provider.hostLocation)
 
         return cls(url, groupMembership, objectPostBody, None)
 
