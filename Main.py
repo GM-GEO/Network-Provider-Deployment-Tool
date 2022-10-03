@@ -59,12 +59,12 @@ def main():
                              object['value'],
                              group=object['group'])
 
-        # print("Object list Network: ", paloAlto.getObjectList('network'))
-        # print("Object list FQDN: ", paloAlto.getObjectList('fqdn'))
-        # print("Object list Url: ", paloAlto.getObjectList('host'))
-        # paloAlto.applyObjectList('host')
-        # print("FQDNs: ", paloAlto.getObjectList('fqdn'))
-        # paloAlto.applyObjectList('fqdn')
+        print("Object list Network: ", paloAlto.getObjectList('network'))
+        print("Object list FQDN: ", paloAlto.getObjectList('fqdn'))
+        print("Object list Url: ", paloAlto.getObjectList('host'))
+        paloAlto.applyObjectList('host')
+        print("FQDNs: ", paloAlto.getObjectList('fqdn'))
+        paloAlto.applyObjectList('fqdn')
         print("Url groups: ", paloAlto.createGroupMembershipLists('url'))
 
 
@@ -83,8 +83,12 @@ def main():
             log.info("Enter Username:")
             username = str(input())
 
+        # username = 'apiuser'
+        print("Username taken")
+
         while not checkValidPassword(password):
-            password = getpass("Enter Password:")
+            log.info("Enter password:")
+            password = str(input())
 
         labFMC = FMC(ipAddress, username, password)
 
@@ -103,38 +107,42 @@ def main():
                              object['value'],
                              group=object['group'])
 
-        labFMC.getObjectList("host")
-        log.info("Retrieved Object List.")
-
-        labFMC.applyObjectList("host")
-        log.info("Applied Result.")
-
-        labFMC.createGroups("host")
-        log.info("Created Group.")
-
-        labFMC.getObjectList("network")
-        log.info("Retrieved Object List.")
-
-        labFMC.applyObjectList("network")
-        log.info("Applied Result.")
-
-        labFMC.createGroups("network")
-        log.info("Created Group.")
-
-        labFMC.getObjectList("url")
-        log.info("Retrieved Object List.")
-
-        labFMC.applyObjectList("url")
-        log.info("Applied Result.")
-
-        labFMC.createGroups("url")
-        log.info("Created Group.")
-
-        Logger_AddBreakLine()
+        # labFMC.getObjectList("host")
+        # log.info("Retrieved Object List.")
+        #
+        # labFMC.applyObjectList("host")
+        # log.info("Applied Result.")
+        #
+        # labFMC.createGroups("host")
+        # log.info("Created Group.")
+        #
+        # labFMC.getObjectList("network")
+        # log.info("Retrieved Object List.")
+        #
+        # labFMC.applyObjectList("network")
+        # log.info("Applied Result.")
+        #
+        # labFMC.createGroups("network")
+        # log.info("Created Group.")
+        #
+        # labFMC.getObjectList("url")
+        # log.info("Retrieved Object List.")
+        #
+        # labFMC.applyObjectList("url")
+        # log.info("Applied Result.")
+        #
+        # labFMC.createGroups("url")
+        # log.info("Created Group.")
+        #
+        # Logger_AddBreakLine()
+        #
+        # for index, rule in parsedRuleCSV.items():
+        #     result = labFMC.createAccessRule(rule)
+        #     log.info("Rule creation: " + str(result))
 
         for index, rule in parsedRuleCSV.items():
-            result = labFMC.createAccessRule(rule)
-            log.info("Rule creation: " + str(result))
+            result = labFMC.createNATRules(rule)
+            log.info("NAT Rule creation: " + str(result))
 
         pass
 

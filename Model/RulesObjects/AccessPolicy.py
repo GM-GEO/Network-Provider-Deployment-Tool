@@ -247,3 +247,67 @@ class AccessPolicyObject:
                         self.objectUUID + "}")
 
         return response.status_code
+
+    def createNATRules(self, apiToken, csvRow):
+        logger = Logger_GetLogger()
+        logger.info("Initiating Policy Creation")
+
+        authHeaders = {"X-auth-access-token": apiToken}
+
+        securityZones = self.__getSecurityZones(csvRow)
+        networks = self.__getNetworks(csvRow)
+        filePolicy = self.__getFilePolicies(csvRow)
+        urls = self.__getUrls(csvRow)
+        application = self.__getApplication(csvRow)
+
+        postBody = {}
+        #
+        # postBody['action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
+        # postBody['enabled'] = True
+        # postBody['type'] = 'AccessRule'
+        # postBody['name'] = csvRow['name']
+        # postBody['sendEventsToFMC'] = True
+        #
+        # if postBody['action'] == 'ALLOW':
+        #     postBody['filePolicy'] = filePolicy
+        #     postBody[
+        #         'logFiles'] = True if 'TRUE' in csvRow['logFiles'] else False
+        #
+        # postBody['logBegin'] = False if "Permit" in csvRow['action'] else True
+        # postBody['logEnd'] = not postBody['logBegin']
+        # if networks[0] != None:
+        postBody['originalNetwork'] = networks[0]
+        # postBody['sourceZones'] = {"objects": [securityZones[0]]}
+        # if networks[1] != None:
+        postBody['translatedNetwork'] = networks[1]
+        # postBody['destinationZones'] = {'objects': [securityZones[1]]}
+        postBody['type'] = 'FTDAutoNatRule'
+        postBody['natType'] = 'STATIC'
+        postBody['interfaceIpv6'] = False
+        postBody['fallThrough'] = False
+        postBody['dns'] = False
+        postBody['routeLookup'] = False
+        postBody['noProxyArp'] = False
+        postBody['netToNet'] = False
+        postBody['sourceInterface'] = securityZones[0]
+        # "type": "FTDAutoNatRule",
+        # "natType": "STATIC",
+        # "interfaceIpv6": false,
+        # "fallThrough": false,
+        # "dns": false,
+        # "routeLookup": false,
+        # "noProxyArp": false,
+        # "netToNet": false,
+        url = 'https://10.255.20.10/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/policy/ftdnatpolicies/005056B6-DCA2-0ed3-0000-004294974477/autonatrules'
+
+        print("NAT postBody: ", postBody)
+
+        response = requests.post(url=url,
+                                 headers=authHeaders,
+                                 json=postBody,
+                                 verify=False)
+
+        print("NAT response: ", response.json())
+
+
+

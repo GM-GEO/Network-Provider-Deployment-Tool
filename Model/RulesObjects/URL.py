@@ -17,9 +17,7 @@ class URLObject:
         self.objectUUID = ''
         self.groupMembership = groupMembership
 
-        if queryParameters:
-            self.queryParameters = queryParameters
-            pass
+        self.queryParameters = queryParameters
 
     @classmethod
     def FMCUrlObject(cls, provider: FMC, name, value, description,
@@ -33,8 +31,9 @@ class URLObject:
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.urlLocation)
-
-        return cls(url, groupMembership, objectPostBody, None)
+        
+        queryParameters = {}
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
     @classmethod
     def PaloAltoUrlObject(cls, provider: PaloAlto, name, value, description,
