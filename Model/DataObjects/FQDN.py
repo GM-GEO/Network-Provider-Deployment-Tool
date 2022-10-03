@@ -17,8 +17,7 @@ class FQDNObject:
         self.objectUUID = ''
         self.groupMembership = groupMembership
 
-        if queryParameters:
-            self.queryParameters = queryParameters
+        self.queryParameters = queryParameters
 
     @classmethod
     def FMCFQDN(cls, provider: FMC, name, value, description, groupMembership):
@@ -31,8 +30,9 @@ class FQDNObject:
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.hostLocation)
-
-        return cls(url, groupMembership, objectPostBody, None)
+        
+        queryParameters = {}
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
     @classmethod
     def PaloAltoFQDN(cls, provider: FMC, name, value, description,

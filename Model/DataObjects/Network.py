@@ -20,9 +20,7 @@ class NetworkObject:
         self.objectUUID = ''
         self.groupMembership = groupMembership
 
-        if queryParameters:
-            self.queryParameters = queryParameters
-            pass
+        self.queryParameters = queryParameters
 
     @classmethod
     def FMCNetwork(cls, provider: FMC, name, value, description,
@@ -38,7 +36,8 @@ class NetworkObject:
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
                                   provider.domainId, provider.networkLocation)
 
-        return cls(url, groupMembership, objectPostBody, None)
+        queryParameters = {}
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
     @classmethod
     def PaloAltNetwork(cls, provider: PaloAlto, name, value, description,
@@ -71,6 +70,7 @@ class NetworkObject:
         logger = Logger_GetLogger()
         # authHeaders = {"X-auth-access-token": apiToken}
         # authHeaders = {"X-PAN-KEY": apiToken}
+        print("ApiToken for NW creation: ", apiToken)
 
         response = requests.post(url=self.creationURL,
                                  headers=apiToken,
@@ -82,8 +82,8 @@ class NetworkObject:
         if response.status_code <= 299 and response.status_code >= 200:
             if 'id' in response.json().keys():
                 self.objectUUID = response.json()['id']
-            logger.info("Created Network Object: {" + self.getPName() +
-                        " Type: " + self.getType() + "}")
+            # logger.info("Created Network Object: {" + self.getPName() +
+            #             " Type: " + self.getType() + "}")
 
         return response.status_code
 

@@ -67,6 +67,7 @@ class FMC(Provider):
         # self.allUrlGroupList = self.__getAllUrlGroups()
         self.allUrlObjectList = self.__getAllUrls()
         self.allHostObjectList = self.__getAllHosts()
+        self.allFQDNObjects = self.__getAllFQDNs()
 
         return None
 
@@ -75,11 +76,10 @@ class FMC(Provider):
         We will need to extract these username/password values and either read them from user input or a security key file
         Can we pull the domain ID from this auth request and set it by default?
         """
-        response = requests.Response
         url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
         response = requests.post(
-                url,
-                auth=HTTPBasicAuth("apiuser", "JR8A54gWFc&#IVxIvoP91@0mWhQ51"),
+                url='https://10.255.20.10/api/fmc_platform/v1/auth/generatetoken',
+                auth=HTTPBasicAuth(username, password),
                 data={},
                 verify=False
             )
@@ -238,7 +238,30 @@ class FMC(Provider):
                         'id': urlID,
                         'name': urlName
                     })
+        elif type == 'fqdn':
+            for fqdn in self.FQDNObjectList:
 
+                fqdnName = fqdn.getName()
+                fqdnID = fqdn.getUUID()
+                groupName = fqdn.getGroupMembership()
+
+                if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                    self.logger.info(
+                        "Group Not Found, Added to as new List. {Host: " + fqdnName + ", GroupName: " + groupName + "}")
+                    groupDict[groupName] = []
+                    groupDict[groupName].append({
+                        'type': 'fqdn',
+                        'id': fqdnID,
+                        'name': fqdnName
+                    })
+                else:
+                    self.logger.info(
+                        "Group Discovered and Added. {Host: " + fqdnName + ", GroupName: " + groupName + "}")
+                    groupDict[groupName].append({
+                        'type': 'fqdn',
+                        'id': fqdnID,
+                        'name': fqdnName
+                    })
         self.logger.info("Group Membership Lists Resolved. {Type: " + type +"}")
 
         return groupDict
@@ -304,7 +327,7 @@ class FMC(Provider):
         groupDict = self.__createGroupMembershipLists(type)
 
         for group in groupDict:
-            if type == 'host':
+            if type == 'host' or type == 'fqdn':
                 type = 'network'
 
             objGroup = ObjectGroup.GroupObject(
@@ -502,8 +525,7 @@ class FMC(Provider):
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.remove(i)
 
-                                    result = network.createNetwork(
-                                        self.authHeader)
+                                    result = network.createNetwork(self.authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.append([network.getName(), network.getUUID(
                                         ), network.getValue(), network.getType(), network.getDescription()])
@@ -518,7 +540,8 @@ class FMC(Provider):
                     print(flag_network)
                     if flag_network == True:
                         print("Condition 2", network.getName())
-                        result = network.createNetwork(self.apiToken)
+                        authHeader = {"X-auth-access-token": self.apiToken}
+                        result = network.createNetwork(authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allNetworkObjectList.append([network.getName(), network.getUUID(
                             ), network.getValue(), network.getType(), network.getDescription()])
@@ -783,6 +806,35 @@ class FMC(Provider):
 
         return returnList
 
+    def __getAllFQDNs(self):
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation)
+
+        fqdn = requests.get(
+            url=url,
+            headers=self.authHeader,
+            verify=False
+        )
+
+        fqdns = fqdn.json()['items']
+        returnList = []
+
+        for cat in fqdns:
+            del cat['links']
+
+            newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
+                                               cat['id'])
+
+            fqdn = requests.get(
+                url=newURL,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            fqdn = fqdn.json()
+            returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
+
+        return returnList
+
     def __getAllGroups(self):
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkGroupLocation)
 
@@ -875,12 +927,52 @@ class FMC(Provider):
 
         return networks.status_code
 
-    def createAccessRule(self, csvRow):
+    def deleteFQDNs(self, id):
+        url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation, id)
+        networks = requests.delete(
+            url=url,
+            headers=self.authHeader,
+            verify=False
+        )
 
-        policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-004294973677', self.securityZoneObjectList, self.allNetworkObjectList,
+        return networks.status_code
+    def mergeAllNetworkTypes(self):
+        networks = self.allNetworkObjectList
+        hosts = self.allHostObjectList
+
+        for i in hosts:
+            networks.append(i)
+
+        for i in self.allFQDNObjects:
+            networks.append(i)
+
+        return networks
+
+    def createAccessRule(self, csvRow):
+        allNetworks = self.mergeAllNetworkTypes()
+
+        policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-004294973677', self.securityZoneObjectList, allNetworks,
                                                        self.portObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList)
         
         response = policyObject.createPolicy(self.apiToken, csvRow)
+
+        return response
+
+    def createNATRules(self, csvRow):
+
+        allNetworks = self.mergeAllNetworkTypes()
+
+        policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self,
+                                                                             '005056B6-DCA2-0ed3-0000-004294973677',
+                                                                             self.securityZoneObjectList,
+                                                                             allNetworks,
+                                                                             self.portObjectList,
+                                                                             self.filePolicyObjectList,
+                                                                             self.urlCategoryObjectList,
+                                                                             self.allUrlObjectList, self.allGroupsList,
+                                                                             self.applicationObjectList)
+
+        response = policyObject.createNATRules(self.apiToken, csvRow)
 
         return response
 

@@ -21,9 +21,11 @@ class HostObject:
         self.objectUUID = ''
         self.groupMembership = groupMembership
 
-        if queryParameters:
-            self.queryParameters = queryParameters
-            pass
+        self.queryParameters = queryParameters
+
+        # if queryParameters:
+        #     self.queryParameters = queryParameters
+        #     pass
 
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
@@ -38,7 +40,9 @@ class HostObject:
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation, '',
                                   provider.networkLocation)
 
-        return cls(url, groupMembership, objectPostBody, None)
+        queryParameters = {}
+
+        return cls(url, groupMembership, objectPostBody, queryParameters)
 
     @classmethod
     def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
