@@ -1,13 +1,13 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject
-from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
+from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
+from Model.DataObjects.Enums.YesNoEnum import YesNoEnum
+from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
 from Model.Providers.Provider import Provider, buildUrlForResource, buildUrlForResourceWithId
-from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, \
-    SecurityZones, URL, URLCategory
+from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
 from Model.Utilities.LoggingUtils import Logger_GetLogger
 from Model.Utilities.StringUtils import checkYesNoResponse, checkValidGroupType
-from Model.DataObjects.YesNoEnum import YesNoEnum
 
 
 class FMC(Provider):
@@ -37,8 +37,6 @@ class FMC(Provider):
         self.objectGroupList = []
         self.URLObjectList = []
         self.FQDNObjectList = []
-
-        self.supportedObjectList = ["host","network","url","fqdn"]
 
         self.domainLocation = "/api/fmc_config/v1/domain/"
 
@@ -166,11 +164,11 @@ class FMC(Provider):
         self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
 
-    def __createGroupMembershipLists(self, type):
+    def __createGroupMembershipLists(self, type:str):
 
         groupDict = {}
 
-        if type == 'host':
+        if type == ObjectTypeEnum.HOST:
             for host in self.hostObjectList:
 
                 hostName = host.getName()
@@ -181,18 +179,18 @@ class FMC(Provider):
                     self.logger.info("Group Not Found, Added to as new List. {Host: " + hostName + ", GroupName: " + groupName + "}")
                     groupDict[groupName] = []
                     groupDict[groupName].append({
-                        'type': 'Host',
+                        'type': ObjectTypeEnum.HOST.value.capitalize(),
                         'id': hostID,
                         'name': hostName
                     })
                 else:
                     self.logger.info("Group Discovered and Added. {Host: " + hostName + ", GroupName: " + groupName + "}")
                     groupDict[groupName].append({
-                        'type': 'Host',
+                        'type': ObjectTypeEnum.HOST.value.capitalize(),
                         'id': hostID,
                         'name': hostName
                     })
-        elif type == 'network':
+        elif type == ObjectTypeEnum.NETWORK:
             for network in self.networkObjectList:
 
                 networkName = network.getName()
@@ -203,19 +201,19 @@ class FMC(Provider):
                     self.logger.info("Group Not Found, Added as new to List. {Network: " + networkName + ", GroupName: " + groupName + "}")
                     groupDict[groupName] = []
                     groupDict[groupName].append({
-                        'type': 'Network',
+                        'type': ObjectTypeEnum.NETWORK.value.capitalize(),
                         'id': networkID,
                         'name': networkName
                     })
                 else:
                     self.logger.info("Group Discovered and Added. {Network: " + networkName + ", GroupName: " + groupName + "}")
                     groupDict[groupName].append({
-                        'type': 'Network',
+                        'type': ObjectTypeEnum.NETWORK.value.capitalize(),
                         'id': networkID,
                         'name': networkName
                     })
 
-        elif type == 'url':
+        elif type == ObjectTypeEnum.URL:
             for url in self.URLObjectList:
 
                 urlName = url.getName()
@@ -226,7 +224,7 @@ class FMC(Provider):
                     self.logger.info("Group Not Found, Added as new to List. {URL: " + urlName + ", GroupName: " + groupName + "}")
                     groupDict[groupName] = []
                     groupDict[groupName].append({
-                        'type': 'Url',
+                        'type': ObjectTypeEnum.URL.value.capitalize(),
                         'id': urlID,
                         'name': urlName
                     })
@@ -234,7 +232,7 @@ class FMC(Provider):
                 else:
                     self.logger.info("Group Discovered and Added. {URL: " + urlName + ", GroupName: " + groupName + "}")
                     groupDict[groupName].append({
-                        'type': 'Url',
+                        'type': ObjectTypeEnum.URL.value.capitalize(),
                         'id': urlID,
                         'name': urlName
                     })
@@ -244,7 +242,7 @@ class FMC(Provider):
         return groupDict
 
     def deleteGroup(self, id, type):
-        groupLocation = self.networkGroupLocation if type == "network" else self.urlGroupLocation
+        groupLocation = self.networkGroupLocation if type == ObjectTypeEnum.NETWORK.value else self.urlGroupLocation
 
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, groupLocation, id)
 
@@ -256,7 +254,7 @@ class FMC(Provider):
             verify=False
         )
 
-        self.logger.info("Group deleted. {Id: " + id + ", Type: " + type + "}")
+        self.logger.info("Group deleted. {Id: " + id + ", Type: " + type + ", Status Code: " + str(networks.status_code) + "}")
         return networks.status_code
 
     def appendToGroup(self, groupId, groupType, objectName, objectId, objectType):
@@ -299,7 +297,7 @@ class FMC(Provider):
             return response.status_code  
 
 
-    def createGroups(self, type):
+    def createGroups(self, type: str):
 
         groupDict = self.__createGroupMembershipLists(type)
 
@@ -309,83 +307,11 @@ class FMC(Provider):
 
             objGroup = ObjectGroup.GroupObject(
                 self.domainId, group, type, groupDict[group], self.fmcIP)
-            flag = True
 
             for i in self.allGroupsList:
                 if i[0] == objGroup.getName():
-                    print("This groupName named ", objGroup.getName(),
-                          "already exists. Do you want to delete the object group and recreate it? Please answer 'Y' or 'N'. Please note that the existing networks in the group will get deleted from the group.")
-                    ans = str(input())
-                    if ans == 'N':
-                        flag = False
-                        print("Continued without deleting and recreating the group.")
-                    elif ans == 'Y':
-                        flag = False
-                        if i[3] == 'NetworkGroup':
-                            result = self.deleteGroup(i[1], 'network')
-                        else:
-                            result = self.deleteGroup(i[1], 'url')
-
-                        if int(result) < 299:
-                            self.allGroupsList.remove(i)
-                        result = objGroup.createGroup(self.apiToken)
-                        print("Making group: ", result)
-                        if int(result) < 299:
                             self.allGroupsList.append(
                                 [objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-                    # if result < 299:
-                    #     self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), ])
-                    # self.allGroupsList.remove()
-                if flag == True:
-                    result = objGroup.createGroup(self.apiToken)
-                    print("Making group: ", result)
-                    if int(result) < 299:
-                        self.allGroupsList.append(
-                            [objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-
-            """
-            for i in self.allGroupsList:
-                print("i: ", i)
-                print("group: ", groupDict[group])
-
-                print("Comparison: ", self.compareContainingObjects(i[4], group))
-                if i[0] == objGroup.getName():
-                    print(i[0], objGroup.getName(), "Results")
-                    flag = False
-                    check = self.compareContainingObjects(i[4], group)  # gives True if all the component names in group are there in i[3], that is the component column of the group
-                    print("Check: ", check)
-                    if check == True:
-                        print("The groups have same components so no need to delete and recreate the object group")
-                    if check == False:
-                        print("This groupName named ", objGroup.getName(), "already exists. Do you want to delete the object group and recreate it? Please answer 'Y' or 'N'. Please note that the existing networks in the group will get deleted from the group.")
-                        ans = str(input())
-                        if ans == 'N':
-                            flag = False
-                            print("Continued without deleting and recreating the group.")
-                        elif ans == 'Y':
-                            flag = False
-                            if i[3] == 'NetworkGroup':
-                                result = self.deleteGroup(i[1], 'network')
-                            else:
-                                result = self.deleteGroup(i[1], 'url')
-
-
-                            if int(result) < 299:
-                                self.allGroupsList.remove(i)
-                            result = objGroup.createGroup(self.apiToken)
-                            print("Making group: ", result)
-                            if int(result) < 299:
-                                self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-                        # if result < 299:
-                        #     self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), ])
-                        # self.allGroupsList.remove()
-                if flag == True:
-                    print("Reaching here")
-                    result = objGroup.createGroup(self.apiToken)
-                    print("Making group: ", result)
-                    if int(result) < 299:
-                        self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-            """
 
             self.objectGroupList.append(objGroup)
 
@@ -404,44 +330,44 @@ class FMC(Provider):
             else:
                 return False
 
-    def addObject(self, domain, type, name, value, description='', group=''):
+    def addObject(self, type, name, value, description='', group=''):
 
-        if type == 'host':
+        if type == ObjectTypeEnum.HOST:
             self.__addHost(name, value, description, group)
 
-        elif type == 'network':
+        elif type == ObjectTypeEnum.NETWORK:
             self.__addNetwork(name, value, description, group)
 
-        elif type == 'url':
+        elif type == ObjectTypeEnum.URL:
             self.__addURL(name, value, description, group)
 
-        elif type == 'fqdn':
+        elif type == ObjectTypeEnum.FQDN:
             self.__addFQDN(name, value, description, group)
 
         else:
             return "Object type not configured"
 
-    def getObjectList(self, objectType):
+    def getObjectList(self, objectType:str):
 
         match objectType:
-            case "host":
+            case ObjectTypeEnum.HOST:
                 return self.hostObjectList
-            case "network":
+            case ObjectTypeEnum.NETWORK:
                 return self.networkObjectList
-            case "url":
+            case ObjectTypeEnum.URL:
                 return self.URLObjectList
-            case "fqdn":
+            case ObjectTypeEnum.FQDN:
                 return self.FQDNObjectList
-            case "port":
+            case ObjectTypeEnum.PORT:
                 return self.portObjectList
-            case "securityzone":
+            case ObjectTypeEnum.SECURITYZONE:
                 return self.securityZoneObjectList
             case _:
                 return None
 
     def applyObjectList(self, listType):
         match listType:
-            case "host":
+            case ObjectTypeEnum.HOST:
 
                 for host in self.hostObjectList:
                     flag_host = True
@@ -451,34 +377,20 @@ class FMC(Provider):
                             flag_host = False
                             if ((i[0] == host.getName()) and (i[2] == host.getValue())):
                                 print(
-                                    "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+                                    "Exactly same object so no need to delete. Condition 1.1 " + str(i[0]))
                                 flag_network = False
-                            elif ((i[0] == host.getName()) and (i[2] != host.getValue())):
-                                print(i[0], i[2],
-                                      "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
-                                ans = str(input())
-                                if ans == 'Y':
-                                    print("Condition 1.2.1")
-                                    result = self.deleteHosts(i[1])
-                                    if int(result) <= 299 and int(result) >= 200:
-                                        self.allHostObjectList.remove(i)
-                                    result = host.createHost(self.authHeader)
-                                    if int(result) <= 299 and int(result) >= 200:
-                                        self.allHostObjectList.append([host.getName(), host.getUUID(
-                                        ), host.getValue(), host.getType(), host.getDescription()])
-                                else:
-                                    print("Condition 1.2.2: Skipped this host.")
+                            else:
+                                print("Condition 1.2.2: Skipped this host.")
 
-                    print(flag_host)
                     if flag_host == True:
                         print("Condition 2", host.getName())
-                        result = host.createHost(self.authHeader)
+                        result = host.createFMCHost(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allHostObjectList.append([host.getName(), host.getUUID(
                             ), host.getValue(), host.getType(), host.getDescription()])
                         print(result)
 
-            case "network":
+            case ObjectTypeEnum.NETWORK:
                 for network in self.networkObjectList:
                     flag_network = True
                     for i in self.allNetworkObjectList:
@@ -492,28 +404,8 @@ class FMC(Provider):
                                 print(
                                     "Exactly same object so no need to delete. Condition 1.1 ", i[0])
                                 flag_network = False
-                            elif ((i[0] == network.getName()) and (i[2] != network.getValue())):
-                                print(
-                                    i[0], i[2], "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
-                                ans = str(input())
-                                if ans == 'Y':
-                                    print("Condition 1.2.1")
-                                    result = self.deleteNetwork(i[1])
-                                    if int(result) <= 299 and int(result) >= 200:
-                                        self.allNetworkObjectList.remove(i)
-
-                                    result = network.createNetwork(
-                                        self.authHeader)
-                                    if int(result) <= 299 and int(result) >= 200:
-                                        self.allNetworkObjectList.append([network.getName(), network.getUUID(
-                                        ), network.getValue(), network.getType(), network.getDescription()])
-
-                                    print("result crete network: ", result)
-                                    print("Name for: ", network.getName(),
-                                          " Id: ", network.getUUID())
-                                else:
-                                    print(
-                                        "Condition 1.2.2: Skipped this network.")
+                            else:
+                                 print("Condition 1.2.2: Skipped this network.")
 
                     print(flag_network)
                     if flag_network == True:
@@ -526,7 +418,7 @@ class FMC(Provider):
                         print("Name for: ", network.getName(),
                               " Id: ", network.getUUID())
 
-            case "url":
+            case ObjectTypeEnum.URL:
                 for url in self.URLObjectList:
                     flag_url = True
                     for i in self.allUrlObjectList:
@@ -540,24 +432,8 @@ class FMC(Provider):
                                 print(
                                     "Exactly same object so no need to delete. Condition 1.1 ", i[0])
                                 flag_url = False
-                            elif ((i[0] == url.getName()) and (i[2] != url.getValue())):
-                                print(i[0], i[2],
-                                      "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
-                                ans = str(input())
-                                if ans == 'Y':
-                                    print("Condition 1.2.1")
-                                    result = self.deleteUrls(i[1])
-                                    if int(result) <= 299 and int(result) >= 200:
-                                        self.allUrlObjectList.remove(i)
-                                    result = url.createURL(self.authHeader)
-                                    if int(result) <= 299 and int(result) >= 200:
-                                        self.allUrlObjectList.append([url.getName(), url.getUUID(
-                                        ), url.getValue(), url.getType(), url.getDescription()])
-                                    print("result crete url: ", result)
-                                    print("Name for: ", url.getName(),
-                                          " Id: ", url.getUUID())
-                                else:
-                                    print("Condition 1.2.2: Skipped this url.")
+                            else:
+                                print("Condition 1.2.2: Skipped this url.")
 
                     print(flag_url)
                     if flag_url == True:
@@ -570,7 +446,7 @@ class FMC(Provider):
                         print("Name for: ", url.getName(),
                               " Id: ", url.getUUID())
 
-            case "fqdn":
+            case ObjectTypeEnum.FQDN:
                 for fqdn in self.FQDNObjectList:
                     result = fqdn.createFQDN(self.authHeader)
 
@@ -853,6 +729,8 @@ class FMC(Provider):
             verify=False
         )
 
+        self.logger.info("Network deleted. {Id: " + id + "}")
+
         return networks.status_code
 
     def deleteUrls(self, id):
@@ -863,15 +741,20 @@ class FMC(Provider):
             verify=False
         )
 
+        self.logger.info("URL deleted. {Id: " + id + "}")
+
         return networks.status_code
 
     def deleteHosts(self, id):
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation, id)
+
         networks = requests.delete(
             url=url,
             headers=self.authHeader,
             verify=False
         )
+
+        self.logger.info("Host deleted. {Id: " + id + "}")
 
         return networks.status_code
 

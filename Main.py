@@ -98,8 +98,7 @@ def main():
         Logger_AddBreakLine()
 
         for index, object in parsedObjectCSV.items():
-            labFMC.addObject(labFMC.domainId,
-                             object['type'],
+            labFMC.addObject(object['type'],
                              object['name'],
                              object['value'],
                              group=object['group'])

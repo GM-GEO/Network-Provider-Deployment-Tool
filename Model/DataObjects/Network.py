@@ -1,5 +1,6 @@
 from typing import Dict
 import requests
+from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
 
 from Model.Providers.FMCConfig import FMC
 from Model.Providers.PaloAltoConfig import PaloAlto
@@ -31,7 +32,7 @@ class NetworkObject:
         objectPostBody = {}
 
         objectPostBody['name'] = name
-        objectPostBody['type'] = 'network'
+        objectPostBody['type'] = ObjectTypeEnum.NETWORK.value
         objectPostBody['value'] = value
         objectPostBody['description'] = description
 
@@ -57,8 +58,6 @@ class NetworkObject:
         queryParameters['name'] = name
         queryParameters['location'] = 'vsys'
         queryParameters['vsys'] = 'vsys1'
-
-
 
         url = buildUrlForResource(provider.paloAltoIP, provider.domainLocation,
                                   '', provider.networkLocation)

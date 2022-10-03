@@ -1,5 +1,6 @@
 import csv
 import requests
+from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
 from Model.Providers.FMCConfig import FMC
 from Model.Providers.PaloAltoConfig import PaloAlto
 from Model.Utilities.LoggingUtils import Logger_GetLogger
@@ -63,7 +64,8 @@ class AccessPolicyObject:
                 sourceNetwork['name'] = network[0]
                 # sourceNetwork['id'] = network.getUUID()
                 sourceNetwork['id'] = network[1]
-                sourceNetwork['type'] = 'Network'
+                sourceNetwork[
+                    'type'] = ObjectTypeEnum.NETWORK.value.capitalize()
                 sourceNetwork['overridable'] = False
                 print("Condition 1: ", sourceNetwork)
             elif network[0] == csvRow['destinationNetworks']:
@@ -71,7 +73,8 @@ class AccessPolicyObject:
                 destinationNetwork['name'] = network[0]
                 # destinationNetwork['id'] = network.getUUID()
                 destinationNetwork['id'] = network[1]
-                destinationNetwork['type'] = 'Network'
+                destinationNetwork[
+                    'type'] = ObjectTypeEnum.NETWORK.value.capitalize()
                 destinationNetwork['overridable'] = False
                 print("Condition 2: ", destinationNetwork)
 
@@ -197,7 +200,8 @@ class AccessPolicyObject:
 
         # create body for post request
         postBody = {}
-        postBody['action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
+        postBody[
+            'action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
         postBody['enabled'] = True
         postBody['type'] = 'AccessRule'
         postBody['name'] = csvRow['name']

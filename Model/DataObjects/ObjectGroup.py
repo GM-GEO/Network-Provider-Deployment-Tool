@@ -1,7 +1,6 @@
 import json
 import requests
-from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
-
+from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
 from Model.Utilities.ListUtils import contains
 from Model.Utilities.LoggingUtils import Logger_GetLogger
 

@@ -218,7 +218,7 @@ class PaloAlto(Provider):
 
         return self.FQDNObjectList.append(fqdnObj)
 
-    def addObject(self, domain, type, name, value, description='', group=''):
+    def addObject(self, type, name, value, description='', group=''):
 
         if type == 'host':
             self.__addHost(name, value, description, group)

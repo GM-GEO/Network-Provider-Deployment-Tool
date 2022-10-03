@@ -62,7 +62,32 @@ class HostObject:
 
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
-    def createHost(self, apiToken):
+    def createFMCHost(self, apiToken):
+        # set authentication in the header
+        # authHeaders = {"X-auth-access-token": apiToken}
+
+        response = requests.post(url=self.creationURL,
+                                 headers=apiToken,
+                                 json=self.objectPostBody,
+                                 verify=False)
+
+        # print(response.json()['id'])
+
+        if response.status_code <= 299 and response.status_code >= 200:
+            if 'id' in response.json().keys():
+                self.objectUUID = response.json()['id']
+            # print("Id: ", self.objectUUID)
+
+        print("Host body: ", response.json())
+
+        # self.getAllHosts(self.apiToken)
+        # print(response.json()['error']['messages'][0]['description'])
+        #
+        # return ("Error: ", response.json()['error']['messages'][0]['description'])
+
+        return response.status_code
+
+    def createPaloAltoHost(self, apiToken):
         # set authentication in the header
         # authHeaders = {"X-auth-access-token": apiToken}
 

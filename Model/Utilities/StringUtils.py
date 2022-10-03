@@ -1,5 +1,5 @@
-from Model.DataObjects.YesNoEnum import YesNoEnum
-from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
+from Model.DataObjects.Enums.YesNoEnum import YesNoEnum
+from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
 
 
 def checkValidUsername(userName: str):
