@@ -42,6 +42,8 @@ def main():
         ruleFile = str(input())
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
+    parsedObjectCSV = readCSVFromFile(objectFile)
+    parsedRuleCSV = readCSVFromFile(ruleFile)
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
         while not checkValidIPAddress(ipAddress):
@@ -49,15 +51,13 @@ def main():
             ipAddress = str(input())
 
         paloAlto = PaloAlto(ipAddress)
-        parsedObjectCSV = readCSVFromFile(objectFile)
-        parsedRuleCSV = readCSVFromFile(ruleFile)
 
         for index, object in parsedObjectCSV.items():
             paloAlto.addObject('',
-                             object['type'],
-                             object['name'],
-                             object['value'],
-                             group=object['group'])
+                               object['type'],
+                               object['name'],
+                               object['value'],
+                               group=object['group'])
 
         print("Object list Network: ", paloAlto.getObjectList('network'))
         print("Object list FQDN: ", paloAlto.getObjectList('fqdn'))
@@ -67,10 +67,6 @@ def main():
         paloAlto.applyObjectList('fqdn')
         print("Url groups: ", paloAlto.createGroupMembershipLists('url'))
 
-
-
-        # print(parsedObjectCSV)
-        # paloAlto.getNetworks()
         Logger_AddBreakLine()
 
     elif serviceProvider == ProviderEnum.FMC.value:
@@ -78,13 +74,9 @@ def main():
             log.info("Enter FMC IP Address: ")
             ipAddress = str(input())
 
-
         while not checkValidUsername(username):
             log.info("Enter Username:")
             username = str(input())
-
-        # username = 'apiuser'
-        print("Username taken")
 
         while not checkValidPassword(password):
             log.info("Enter password:")
@@ -107,42 +99,38 @@ def main():
                              object['value'],
                              group=object['group'])
 
-        # labFMC.getObjectList("host")
-        # log.info("Retrieved Object List.")
-        #
-        # labFMC.applyObjectList("host")
-        # log.info("Applied Result.")
-        #
-        # labFMC.createGroups("host")
-        # log.info("Created Group.")
-        #
-        # labFMC.getObjectList("network")
-        # log.info("Retrieved Object List.")
-        #
-        # labFMC.applyObjectList("network")
-        # log.info("Applied Result.")
-        #
-        # labFMC.createGroups("network")
-        # log.info("Created Group.")
-        #
-        # labFMC.getObjectList("url")
-        # log.info("Retrieved Object List.")
-        #
-        # labFMC.applyObjectList("url")
-        # log.info("Applied Result.")
-        #
-        # labFMC.createGroups("url")
-        # log.info("Created Group.")
-        #
-        # Logger_AddBreakLine()
-        #
-        # for index, rule in parsedRuleCSV.items():
-        #     result = labFMC.createAccessRule(rule)
-        #     log.info("Rule creation: " + str(result))
-
         for index, rule in parsedRuleCSV.items():
             result = labFMC.createNATRules(rule)
             log.info("NAT Rule creation: " + str(result))
+
+        labFMC.getobjectlist("host")
+        log.info("retrieved Host list.")
+
+        labFMC.applyobjectlist("host")
+        log.info("applied changes to Hosts.")
+
+        labFMC.creategroups("host")
+        log.info("created Host Groups.")
+
+        labFMC.getobjectlist("network")
+        log.info("retrieved Network list.")
+
+        labFMC.applyobjectlist("network")
+        log.info("applied Network results.")
+
+        labFMC.creategroups("network")
+        log.info("created Network group.")
+
+        labFMC.getobjectlist("url")
+        log.info("retrieved URL list.")
+
+        labFMC.applyobjectlist("url")
+        log.info("applied URL results.")
+
+        labFMC.creategroups("url")
+        log.info("created group.")
+
+        Logger_AddBreakLine()
 
         pass
 
