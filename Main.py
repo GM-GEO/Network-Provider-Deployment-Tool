@@ -99,37 +99,36 @@ def main():
                              object['value'],
                              group=object['group'])
 
-
-        labFMC.getobjectlist("host")
+        labFMC.getObjectList("host")
         log.info("retrieved Host list.")
 
-        labFMC.applyobjectlist("host")
+        labFMC.applyObjectList("host")
         log.info("applied changes to Hosts.")
 
-        labFMC.creategroups("host")
+        labFMC.createGroups("host")
         log.info("created Host Groups.")
 
-        labFMC.getobjectlist("network")
+        labFMC.getObjectList("network")
         log.info("retrieved Network list.")
 
-        labFMC.applyobjectlist("network")
+        labFMC.applyObjectList("network")
         log.info("applied Network results.")
 
-        labFMC.creategroups("network")
+        labFMC.createGroups("network")
         log.info("created Network group.")
 
-        labFMC.getobjectlist("url")
+        labFMC.getObjectList("url")
         log.info("retrieved URL list.")
 
-        labFMC.applyobjectlist("url")
+        labFMC.applyObjectList("url")
         log.info("applied URL results.")
 
-        labFMC.creategroups("url")
+        labFMC.createGroups("url")
         log.info("created group.")
 
         Logger_AddBreakLine()
 
-        pass
+    pass
 
 
 if __name__ == '__main__':

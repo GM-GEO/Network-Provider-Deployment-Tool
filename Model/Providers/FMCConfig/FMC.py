@@ -1,13 +1,13 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject
-from Model.DataObjects.GroupTypeEnum import GroupTypeEnum
+from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
+from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
+from Model.DataObjects.Enums.YesNoEnum import YesNoEnum
+from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
 from Model.Providers.Provider import Provider, buildUrlForResource, buildUrlForResourceWithId
-from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, \
-    SecurityZones, URL, URLCategory
 from Model.Utilities.LoggingUtils import Logger_GetLogger
 from Model.Utilities.StringUtils import checkYesNoResponse, checkValidGroupType
-from Model.DataObjects.YesNoEnum import YesNoEnum
 
 
 class FMC(Provider):
@@ -39,7 +39,7 @@ class FMC(Provider):
         self.URLObjectList = []
         self.FQDNObjectList = []
 
-        self.supportedObjectList = ["host","network","url","fqdn"]
+        self.supportedObjectList = ["host", "network", "url", "fqdn"]
 
         self.domainLocation = "/api/fmc_config/v1/domain/"
 
@@ -384,19 +384,23 @@ class FMC(Provider):
                         objGroup.getName(),
                         objGroup.getUUID(), 'objects', i[3], groupDict[group]
                     ])
-                    
-            objGroup = ObjectGroup.GroupObject(
-                self.domainId, group, type, groupDict[group], self.fmcIP)
+
+            objGroup = ObjectGroup.GroupObject(self.domainId, group, type,
+                                               groupDict[group], self.fmcIP)
             flag = True
 
             for i in self.allGroupsList:
                 if i[0] == objGroup.getName():
-                    print("This groupName named ", objGroup.getName(),
-                          "already exists. Do you want to delete the object group and recreate it? Please answer 'Y' or 'N'. Please note that the existing networks in the group will get deleted from the group.")
+                    print(
+                        "This groupName named ", objGroup.getName(),
+                        "already exists. Do you want to delete the object group and recreate it? Please answer 'Y' or 'N'. Please note that the existing networks in the group will get deleted from the group."
+                    )
                     ans = str(input())
                     if ans == 'N':
                         flag = False
-                        print("Continued without deleting and recreating the group.")
+                        print(
+                            "Continued without deleting and recreating the group."
+                        )
                     elif ans == 'Y':
                         flag = False
                         if i[3] == 'NetworkGroup':
@@ -407,20 +411,32 @@ class FMC(Provider):
                         if int(result) < 299:
                             self.allGroupsList.remove(i)
                         result = objGroup.createGroup(self.apiToken)
-                        print("Making group: ", result)
                         if int(result) < 299:
-                            self.allGroupsList.append(
-                                [objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-                    # if result < 299:
-                    #     self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), ])
-                    # self.allGroupsList.remove()
+                            self.logger.info("Group Created. {GroupName: " +
+                                             objGroup.getName() + "}")
+                            self.allGroupsList.append([
+                                objGroup.getName(),
+                                objGroup.getUUID(), 'objects', i[3],
+                                groupDict[group]
+                            ])
+                        else:
+                            self.logger.info(
+                                "Group Creation fell outside 1XX-2XX range. {StatusCode: "
+                                + int(result) + "}")
                 if flag == True:
                     result = objGroup.createGroup(self.apiToken)
-                    print("Making group: ", result)
                     if int(result) < 299:
-                        self.allGroupsList.append(
-                            [objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-
+                        self.logger.info("Group Created. {GroupName: " +
+                                         objGroup.getName() + "}")
+                        self.allGroupsList.append([
+                            objGroup.getName(),
+                            objGroup.getUUID(), 'objects', i[3],
+                            groupDict[group]
+                        ])
+                    else:
+                        self.logger.info(
+                            "Group Creation fell outside 1XX-2XX range. {StatusCode: "
+                            + int(result) + "}")
             """
             for i in self.allGroupsList:
                 print("i: ", i)
@@ -482,7 +498,7 @@ class FMC(Provider):
             else:
                 return False
 
-    def addObject(self, domain, type, name, value, description='', group=''):
+    def addObject(self, type, name, value, description='', group=''):
 
         if type == 'host':
             self.__addHost(name, value, description, group)
