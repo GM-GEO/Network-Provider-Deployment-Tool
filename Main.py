@@ -99,9 +99,6 @@ def main():
                              object['value'],
                              group=object['group'])
 
-        for index, rule in parsedRuleCSV.items():
-            result = labFMC.createNATRules(rule)
-            log.info("NAT Rule creation: " + str(result))
 
         labFMC.getobjectlist("host")
         log.info("retrieved Host list.")

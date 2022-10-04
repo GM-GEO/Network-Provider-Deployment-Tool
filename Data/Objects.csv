@@ -10,4 +10,4 @@ Outside_DNS_SRVR_2,host,208.67.220.220,Umbrella DNS Server 2,LAB_SERVERS
 LAB_DMZ_,network,10.255.29.3/24,Lab DMZ,LAB_NETWORKS
 LAB_WIFI_,network,10.255.29.0/24,Wi-Fi Lab,LAB_NETWORKS
 Win_Update_URL,url,http://*.windowsupda.microsoft.com,Windows update URL 2,WINDOWS_UPDATE
-LAB_WIFI_FQDN1,fqdn,www.testfqdntesting.ca,Wi-Fi Lab ,LAB_NETWORKS
+LAB_WIFI_FQDN,fqdn,www.fqdntest.ca,Wi-Fi Lab,LAB_NETWORKS
