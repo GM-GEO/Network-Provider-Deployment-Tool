@@ -29,7 +29,7 @@ class FQDNObject:
         objectPostBody['description'] = description
 
         url = buildUrlForResource(provider.fmcIP, provider.domainLocation,
-                                  provider.domainId, provider.hostLocation)
+                                  provider.domainId, provider.fqdnLocation)
         
         queryParameters = {}
         return cls(url, groupMembership, objectPostBody, queryParameters)
@@ -82,9 +82,17 @@ class FQDNObject:
 
     def getPValue(self):
         return self.objectPostBody['entry']['fqdn']
+    def getValue(self):
+        return self.objectPostBody['value']
+
+    def getDescription(self):
+        return self.objectPostBody['description']
 
     def getID(self):
         return self.objectUUID
 
     def getGroupMembership(self):
         return self.groupMembership
+
+    def getType(self):
+        return self.objectPostBody['type']

@@ -107,6 +107,12 @@ def main():
                              object['value'],
                              group=object['group'])
 
+
+        print("Create fqdn", labFMC.applyObjectList('fqdn'))
+        print("Get fqdn: ", labFMC.getObjectList('fqdn'))
+        # labFMC.createGroups('fqdn')
+
+
         # labFMC.getObjectList("host")
         # log.info("Retrieved Object List.")
         #
@@ -140,9 +146,9 @@ def main():
         #     result = labFMC.createAccessRule(rule)
         #     log.info("Rule creation: " + str(result))
 
-        for index, rule in parsedRuleCSV.items():
-            result = labFMC.createNATRules(rule)
-            log.info("NAT Rule creation: " + str(result))
+        # for index, rule in parsedRuleCSV.items():
+        #     result = labFMC.createNATRules(rule)
+        #     log.info("NAT Rule creation: " + str(result))
 
         pass
 
