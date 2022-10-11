@@ -12,7 +12,7 @@ class AccessPolicyObject:
     def __init__(self, ip, domainUUID, policyUUID, domainLocation,
                  accessPolicyLocation, securityZoneObjects, networkObjects,
                  portObjects, filePolicyObjects, urlCategoryObjects,
-                 urlObjects, groupObjects, applicationObjects):
+                 urlObjects, groupObjects, applicationObjects, urls):
 
         self.url = buildUrlForResourceWithId(ip, domainLocation, domainUUID,
                                              accessPolicyLocation,
@@ -21,6 +21,8 @@ class AccessPolicyObject:
                                              accessPolicyLocation,
                                              policyUUID) + '/autonatrules'
         self.securityRuleP = buildUrlForResource(ip, domainLocation, '', accessPolicyLocation)
+
+        self.urlTest = urls
 
 
         print("NAT auto rule url: ", self.autoNATruleURL)
@@ -34,28 +36,40 @@ class AccessPolicyObject:
 
         self.applications = applicationObjects
 
+
+
     @classmethod
     def FMCAccessPolicyObject(cls, provider: FMC, policyUUID,
                               securityZoneObjects, networkObjects, portObjects,
                               filePolicyObjects, urlCategoryObjects,
                               urlObjects, groupObjects, applicationObjects):
+        #https://10.255.20.10/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/policy/ftdnatpolicies/005056B6-DCA2-0ed3-0000-004294974477/autonatrules
 
+        accessRuleURL = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.accessPolicyLocation, "005056B6-DCA2-0ed3-0000-017179871248") + '/accessrules'
+        autoNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/autonatrules'
+        manualNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/manualnatrules'
+
+        urls = [accessRuleURL, autoNATRuleUrl, manualNATRuleUrl]
         return cls(provider.fmcIP, provider.domainId, policyUUID,
                    provider.domainLocation, provider.accessPolicyLocation,
                    securityZoneObjects, networkObjects, portObjects,
                    filePolicyObjects, urlCategoryObjects, urlObjects,
-                   groupObjects, applicationObjects)
+                   groupObjects, applicationObjects, urls)
     @classmethod
     def PaloAltoAccessPolicyObject(cls, provider: PaloAlto, policyUUID,
                               securityZoneObjects, networkObjects, portObjects,
                               filePolicyObjects, urlCategoryObjects,
                               urlObjects, groupObjects, applicationObjects):
 
+        securityRuleUrl = buildUrlForResource(provider.paloAltoIP, provider.domainLocation, '', provider.securityRuleLocation)
+        natRuleUrl = buildUrlForResource(provider.paloAltoIP, provider.domainLocation, '', provider.natRuleLocation)
+
+        urls = [securityRuleUrl, natRuleUrl]
         return cls(provider.paloAltoIP, '', '',
                    provider.domainLocation, "",
                    securityZoneObjects, networkObjects, portObjects,
                    filePolicyObjects, urlCategoryObjects, urlObjects,
-                   groupObjects, applicationObjects)
+                   groupObjects, applicationObjects, urls)
 
     def __getSecurityZones(self, csvRow):
         sourceZone = {}
@@ -321,19 +335,20 @@ class AccessPolicyObject:
             "urlCategoriesWithReputation": urlCategories,
             "objects": urls
         }
-        postBody['applications'] = {
-            "applications": [{
-                "deprecated": True,
-                "type": "Application",
-                "name": application["name"],
-                "overridable": application['overridable'],
-                "id": application['id'],
-            }]
-        }
+        # postBody['applications'] = {
+        #     "applications": [{
+        #         "deprecated": True,
+        #         "type": "Application",
+        #         "name": application["name"],
+        #         "overridable": application['overridable'],
+        #         "id": application['id'],
+        #     }]
+        # }
 
         logger.info("Creation request sent")
+        print("Rule creation postBody: ", postBody)
 
-        response = requests.post(url=self.url,
+        response = requests.post(url=self.urlTest[0],
                                  headers=authHeaders,
                                  json=postBody,
                                  verify=False)
@@ -342,6 +357,8 @@ class AccessPolicyObject:
             self.objectUUID = response.json()['id']
             logger.info("Policy creation successful. {Policy Id:" +
                         self.objectUUID + "}")
+
+        print("Response rule creation: ", response.json())
 
         return response.status_code
 
@@ -386,7 +403,7 @@ class AccessPolicyObject:
 
         print("NAT postBody: ", postBody)
 
-        response = requests.post(url=url,
+        response = requests.post(url=self.urlTest[1],
                                  headers=authHeaders,
                                  json=postBody,
                                  verify=False)
@@ -420,7 +437,10 @@ class AccessPolicyObject:
             print("Empty port: ", ports[1])
             postBody["originalDestinationPort"] = ports[1][0]
         postBody['originalSource'] = networks[0]
-        postBody['originalSourcePort'] = ports[0][0]
+
+        if ports[0] != []:
+            print("Empty port: ", ports[1])
+            postBody['originalSourcePort'] = ports[0][0]
 
         postBody['translatedDestination'] = networks[1]
         postBody['translatedSource'] = networks[1]
@@ -429,9 +449,12 @@ class AccessPolicyObject:
         postBody['sourceInterface'] = securityZones[0]
         postBody['destinationInterface'] = securityZones[1]
 
-        postBody['translatedSourcePort'] = ports[0][0]
+
         if ports[1] != []:
             postBody['translatedDestinationPort'] = ports[1][0]
+
+        if ports[0] != []:
+            postBody['translatedSourcePort'] = ports[0][0]
 
         postBody['unidirectional'] = False
         postBody['interfaceInOriginalDestination'] = False
@@ -449,7 +472,7 @@ class AccessPolicyObject:
 
         print("Manual NAT postBody: ", postBody)
 
-        response = requests.post(url=url,
+        response = requests.post(url=self.urlTest[2],
                                  headers=authHeaders,
                                  json=postBody,
                                  verify=False)
@@ -513,7 +536,7 @@ class AccessPolicyObject:
 
         url = 'https://10.255.20.11/restapi/v10.2/Policies/SecurityRules'
 
-        response = requests.post(url=url,
+        response = requests.post(url=self.urlTest[0],
                                  params=params,
                                  headers=authHeader,
                                  json=postBody,
@@ -568,7 +591,7 @@ class AccessPolicyObject:
 
         url = 'https://10.255.20.11/restapi/v10.2/Policies/NatRules'
 
-        response = requests.post(url=url,
+        response = requests.post(url=self.urlTest[1],
                                  params=params,
                                  headers=authHeader,
                                  json=postBody,

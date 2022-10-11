@@ -36,6 +36,8 @@ class PaloAlto(Provider):
         # self.hostLocation = "/object/hosts"
 
         self.filePolicyLocation = "/policy/filepolicies"
+        self.securityRuleLocation = "/Policies/SecurityRules"
+        self.natRuleLocation = "/Policies/NatRules"
 
 
 

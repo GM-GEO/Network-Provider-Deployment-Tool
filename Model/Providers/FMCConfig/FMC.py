@@ -54,6 +54,10 @@ class FMC(Provider):
 
         self.filePolicyLocation = "/policy/filepolicies"
         self.accessPolicyLocation = "/policy/accesspolicies"
+        self.natPolicyLocation = "/policy/ftdnatpolicies"
+
+        self.natRules = "/Policies/NatRules"
+
 
         self.portObjectList = self.__getPortObjects()
         self.securityZoneObjectList = self.__getSecurityZones()
@@ -981,7 +985,7 @@ class FMC(Provider):
     def createAccessRule(self, csvRow):
         allNetworks = self.mergeAllNetworkTypes()
 
-        policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-004294973677', self.securityZoneObjectList, allNetworks,
+        policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
                                                        self.portObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList)
         
         response = policyObject.createPolicy(self.apiToken, csvRow)
@@ -993,7 +997,7 @@ class FMC(Provider):
         allNetworks = self.mergeAllNetworkTypes()
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self,
-                                                                             '005056B6-DCA2-0ed3-0000-004294973677',
+                                                                             '',
                                                                              self.securityZoneObjectList,
                                                                              allNetworks,
                                                                              self.portObjectList,
@@ -1010,7 +1014,7 @@ class FMC(Provider):
         allNetworks = self.mergeAllNetworkTypes()
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self,
-                                                                             '005056B6-DCA2-0ed3-0000-004294973677',
+                                                                             '',
                                                                              self.securityZoneObjectList,
                                                                              allNetworks,
                                                                              self.portObjectList,

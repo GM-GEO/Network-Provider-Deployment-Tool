@@ -67,6 +67,14 @@ def main():
         paloAlto.applyObjectList('fqdn')
         print("Url groups: ", paloAlto.createGroupMembershipLists('url'))
 
+        for index, rule in parsedRuleCSV.items():
+            paloAlto.createAccessRule(rule)
+
+        for index, rule in parsedRuleCSV.items():
+            paloAlto.createNATRule(rule)
+
+
+
         Logger_AddBreakLine()
 
     elif serviceProvider == ProviderEnum.FMC.value:
@@ -94,7 +102,7 @@ def main():
         Logger_AddBreakLine()
 
         for index, object in parsedObjectCSV.items():
-            labFMC.addObject(object['type'],
+            labFMC.addObject('', object['type'],
                              object['name'],
                              object['value'],
                              group=object['group'])
@@ -125,6 +133,15 @@ def main():
 
         labFMC.createGroups("url")
         log.info("created group.")
+
+        for index, rule in parsedRuleCSV.items():
+            labFMC.createAccessRule(rule)
+
+        for index, rule in parsedRuleCSV.items():
+            labFMC.createNATRules(rule)
+
+        for index, rule in parsedRuleCSV.items():
+            labFMC.createManualNATrule(rule)
 
         Logger_AddBreakLine()
 
