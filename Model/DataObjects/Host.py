@@ -66,6 +66,29 @@ class HostObject:
 
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
+    def createHost(self, apiToken):
+        # Set authentication in the header
+
+        # authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-PAN-KEY": apiToken}
+        print("ApiToken for Host creation: ", apiToken)
+
+        response = requests.post(url=self.creationURL,
+                                 headers=apiToken,
+                                 params=self.queryParameters,
+                                 json=self.objectPostBody,
+                                 verify=False)
+        print("Response: ", response.json())
+
+        if response.status_code <= 299 and response.status_code >= 200:
+            if 'id' in response.json().keys():
+                self.objectUUID = response.json()['id']
+            # logger.info("Created Network Object: {" + self.getPName() +
+            #             " Type: " + self.getType() + "}")
+
+        return response.status_code
+
+
     def createFMCHost(self, apiToken):
         # set authentication in the header
         # authHeaders = {"X-auth-access-token": apiToken}

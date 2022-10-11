@@ -21,7 +21,7 @@ class AllNetworksObject:
         authHeaders = {"X-auth-access-token": apiToken}
 
         response = requests.get(
-            url=self.creationURL,
+            url=url,
             headers=authHeaders,
             verify=False
         )

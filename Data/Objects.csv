@@ -1,13 +1,14 @@
 name,type,value,description,group
-LAB_POD5_AD_SRVR,host,10.255.27.11,LAB Pod 5 AD Server,LAB_SERVERS
+LAB_POD5_AD_SRVR,host,10.255.27.12,LAB Pod 5 AD Server,LAB_SERVERS
 LAB_POD5_DNS_SRVR,host,10.255.27.11,LAB Pod 5 DNS Server,LAB_SERVERS
 LAB_POD5_DHCP_SRVR,host,10.255.27.12,LAB Pod 5 DHCP Server,LAB_SERVERS
 Win_Update_URL_1,url,https://*.windowsupdate.microsoft.com,Windows update URL 1,WINDOWS_UPDATE_URLS
 Win_Update_URL_2,url,http://*.windowsupdate.microsoft.com,Windows update URL 2,WINDOWS_UPDATE_URLS
 LAB_POD6_NW,network,10.255.27.0/24,LAB Pod 5 Network,POD_NETWORKS
-Outside_DNS_SRVR_1,host,208.67.222.222,Umbrella DNS Server 1,LAB_SERVERS
+Outside_DNS_SRVR_1,host,208.67.222.221,Umbrella DNS Server 1,LAB_SERVERS
 Outside_DNS_SRVR_2,host,208.67.220.220,Umbrella DNS Server 2,LAB_SERVERS
-LAB_DMZ_,network,10.255.29.3/24,Lab DMZ,LAB_NETWORKS
+LAB_DMZ_,network,10.255.29.4/24,Lab DMZ,LAB_NETWORKS
 LAB_WIFI_,network,10.255.29.0/24,Wi-Fi Lab,LAB_NETWORKS
-Win_Update_URL,url,http://*.windowsupda.microsoft.com,Windows update URL 2,WINDOWS_UPDATE
+Win_Update_URL,url,http://*.windowsupdate.microsoft.com,Windows update URL 2,WINDOWS_UPDATE
 LAB_WIFI_FQDN,fqdn,www.fqdntest.ca,Wi-Fi Lab,LAB_NETWORKS
+LAB_WIFI_FQDN_test,fqdn,www.fqdntest.ca,Wi-Fi Lab,LAB_NETWORKS

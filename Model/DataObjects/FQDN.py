@@ -35,7 +35,7 @@ class FQDNObject:
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
     @classmethod
-    def PaloAltoFQDN(cls, provider: FMC, name, value, description,
+    def PaloAltoFQDN(cls, provider: PaloAlto, name, value, description,
                      groupMembership):
 
         objectPostBody = {}

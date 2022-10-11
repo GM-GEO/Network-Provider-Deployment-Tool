@@ -41,8 +41,10 @@ class NetworkObject:
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
     @classmethod
-    def PaloAltNetwork(cls, provider: PaloAlto, name, value, description,
+    def PaloAltoNetwork(cls, provider: PaloAlto, name, value, description,
                        groupMembership):
+
+        print("Reaching here")
 
         objectPostBody = {}
         objectPostBody['entry'] = {}
@@ -60,6 +62,7 @@ class NetworkObject:
 
         url = buildUrlForResource(provider.paloAltoIP, provider.domainLocation,
                                   '', provider.networkLocation)
+        print("URL test: ", url)
 
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
