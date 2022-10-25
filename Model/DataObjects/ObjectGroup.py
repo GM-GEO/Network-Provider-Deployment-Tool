@@ -3,11 +3,22 @@ import requests
 from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
 from Model.Utilities.ListUtils import contains
 from Model.Utilities.LoggingUtils import Logger_GetLogger
+from Model.Providers.Provider import buildUrlForResource, buildUrlForResourceWithId
+from Model.Providers.FMCConfig import FMC
+
 
 
 class GroupObject:
 
     def __init__(self, domainUUID, name, groupType, groupMemberIDList, ip):
+        """
+
+        :param domainUUID:
+        :param name: Name of the object group.
+        :param groupType: Specifies if it is a UrlGroup or a NetworkGroup.
+        :param groupMemberIDList: The list of objects to be added in the object group.
+        :param ip:
+        """
 
         self.creationURL = 'https://' + ip + '/api/fmc_config/v1/domain/' + domainUUID + '/object/' + groupType + "groups"
 
@@ -29,6 +40,11 @@ class GroupObject:
             self.postBody['type'] = "NetworkGroup"
 
     def createGroup(self, apiToken):
+        """
+        Creates the group object.
+        :param apiToken: The authentication token
+        :return: The status code from the response received after making post request to create the object group.
+        """
 
         logger = Logger_GetLogger()
 
@@ -47,15 +63,70 @@ class GroupObject:
 
         return response.status_code
 
+    def modifyGroup(self, apiToken, id):
+        """
+        Makes a put request for object groups and add additional objects in already existing groups.
+        :param apiToken: Authentication token
+        :param id: The id of the group object to be modified.
+        :return: The status code from the response received after making post request to create the object group.
+        """
+        logger = Logger_GetLogger()
+
+        url = ''
+        if self.groupType == 'url':
+            url = 'https://10.255.20.10/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/urlgroups/'+id
+        else:
+            url = 'https://10.255.20.10/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/object/networkgroups/'+id
+
+        postBody = {}
+        postBody['name'] = self.name
+        postBody['id'] = id
+        postBody['objects'] = self.memberList[0]
+        if self.memberList[1] != []:
+            postBody['literals'] = self.memberList[1]
+
+        if self.groupType == 'url':
+            postBody['type'] = "UrlGroup"
+        else:
+            postBody['type'] = "NetworkGroup"
+
+
+        # Set authentication in the header
+        authHeaders = {"X-auth-access-token": apiToken}
+
+        print("Inputs: ", authHeaders, url, postBody)
+
+        response = requests.put(url=url,
+                                headers=authHeaders,
+                                json=postBody,
+                                verify=False)
+
+        if response.status_code <= 299 and response.status_code >= 200:
+            self.groupUUID = response.json()['id']
+            logger.info("Group created successfully. {" + self.groupUUID + "}")
+
+        print("Modify response: ", response.status_code, response.json())
+
     def getName(self):
+        """
+        :return: Name of the FMC object group
+        """
         return self.name
 
     def getUUID(self):
+        """
+        :return: ID of the object group
+        """
         return self.groupUUID
+
+    def getGroupMembership(self):
+        return self.groupType
+
 
     def checkIfGroupExists(groupName: str, ipAddress, domainLocation, domainId,
                            apiToken):
-        """Checks the returned list of groups to see if we have a group with the same name in the list
+        """
+        Checks the returned list of groups to see if we have a group with the same name in the list
 
         Args:
             groupName (str): The group to check
@@ -87,6 +158,15 @@ class GroupObject:
 
     def createNewGroup(groupName: str, groupType: GroupTypeEnum, ipAddress,
                        domainLocation, domainId, apiToken):
+        """
+        Creates a new object group
+        :param groupType: Specifies if it is a NetworkGroup or UrlGroup
+        :param ipAddress: FMC ip address
+        :param domainLocation:
+        :param domainId:
+        :param apiToken: Authentication token
+        :return:
+        """
 
         postBody = {}
         postBody['name'] = groupName

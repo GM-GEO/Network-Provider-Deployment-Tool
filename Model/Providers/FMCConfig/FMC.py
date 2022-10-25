@@ -14,11 +14,11 @@ class FMC(Provider):
         """Creates the FMC provider with the lists of objects and resource locations
 
         Args:
-            ipAddress (string): The ID Address of the provider
+            ipAddress (string): The IP Address of the provider
 
         Notes:
             The domainId attribute is set as part of the self.requestToken() call made
-            by the self.apiToken istantiation.
+            by the self.apiToken instantiation.
 
         Returns:
             FMC: An FMC object
@@ -37,7 +37,7 @@ class FMC(Provider):
         self.URLObjectList = []
         self.FQDNObjectList = []
 
-        self.supportedObjectList = ["host","network","url","fqdn"]
+        self.supportedObjectList = ["host", "network", "url", "fqdn"]
 
         self.domainLocation = "/api/fmc_config/v1/domain/"
 
@@ -71,13 +71,19 @@ class FMC(Provider):
         self.allUrlObjectList = self.__getAllUrls()
         self.allHostObjectList = self.__getAllHosts()
         self.allFQDNObjects = self.__getAllFQDNs()
+        self.allNetworkGroups = self.__getNetworkGroups()
 
         return None
 
     def requestToken(self, username, password):
         """
+        Retrieves the domain UUID and authentication token
+        :param username: username for authentication
+        :param password: password for authentication
+        :return: authentication token
+        """
+        """
         We will need to extract these username/password values and either read them from user input or a security key file
-        Can we pull the domain ID from this auth request and set it by default?
         """
         url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
         response = requests.post(
@@ -129,7 +135,7 @@ class FMC(Provider):
             name (str): The name of the host to be added
             value (str): The value for the host object
             description (str, optional): The description to be added to the Host object. Defaults to ''.
-            group (str, optional): The name of a Host Group in FMC to add. Defaults to ''.
+            group (str, optional): The name of a Network Group in FMC to add. Defaults to ''.
 
         Returns:
             None: The Host object is appended to the Host Object List
@@ -139,137 +145,155 @@ class FMC(Provider):
         #    self.CheckAndAddGroup(group)
         
         hostObj = Host.HostObject.FMCHost(self, name, value, description, group)    
-        self.logger.info("Host added. {Name: " + name + ", Value: " + group + "}")
+        # self.logger.info("Host added. {Name: " + name + ", Value: " + group + "}")
         return self.hostObjectList.append(hostObj)
 
     def __addNetwork(self, name: str, value: str, description='', group=''):
-
-        #if group:
-        #    self.CheckAndAddGroup(group)
-        
+        """
+        Creates a Network object with the FMC constructor and adds it to the Network Object List.
+        :param name: Name of the network to be added.
+        :param value: The value of the network.
+        :param description: Description of the network. It is optional and defaults to ''.
+        :param group: The name of the Network object group which the network object should be added to.
+        :return:  None: The Network object is appended to the Network Object List
+        """
         networkObj = Network.NetworkObject.FMCNetwork(self, name, value, description, group)
         self.logger.info("Network added. {Name: " + name + ", Value: " + value + "}")
         return self.networkObjectList.append(networkObj)
 
     def __addURL(self, name, url, description='', group=''):
-
-        #if group:
-        #    self.CheckAndAddGroup(group)
-
+        """
+            Creates a Network object with the FMC constructor and adds it to the URL Object List.
+            :param name: Name of the URL to be added.
+            :param url: The value of the URL.
+            :param description: Description of the network. It is optional and defaults to ''.
+            :param group: The name of the URL object group in which the URL should be added.
+            :return:  None: The URL object is appended to the URL Object list.
+        """
         urlObj = URL.URLObject.FMCUrlObject(self, name, url, description, group)
         self.logger.info("URL added. {Name: " + name + ", Value: " + url + "}")
         return self.URLObjectList.append(urlObj)
 
     def __addFQDN(self, name, value, description='', group=''):
-
-        #if group:
-        #    self.CheckAndAddGroup(group)
+        """
+            Creates a FQDN object with the FMC constructor and adds it to the FQDN Object list.
+            :param name: Name of the FQDN to be added.
+            :param value: The value of FQDN.
+            :param description: Description of the FQDN being added. It is optional and defaults to ''.
+            :param group: The name of the FQDN object group in which the FQDN should be added.
+            :return:  None: The FQDN object is appended to the FQDN Object list.
+        """
 
         fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
         self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
 
-    def __createGroupMembershipLists(self, type):
-
+    def createGroupMembershipLists(self, type):
+        """
+        Makes the list of groups and the objects which are to be added in the respective groups.
+        :param type: The type of the groups being created. Type 'url' will result in UrlGroups, and hosts,
+                     FQDNs, and Networks will result in NetworkGroups
+        :return: The dictionary containing all the group names and their constituent objects.
+        """
         groupDict = {}
-
-        if type == 'host':
-            for host in self.hostObjectList:
-
-                hostName = host.getName()
-                hostID = host.getUUID()
-                groupName = host.getGroupMembership()
-
-                if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
-                    self.logger.info("Group Not Found, Added to as new List. {Host: " + hostName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName] = []
-                    groupDict[groupName].append({
-                        'type': 'Host',
-                        'id': hostID,
-                        'name': hostName
-                    })
-                else:
-                    self.logger.info("Group Discovered and Added. {Host: " + hostName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName].append({
-                        'type': 'Host',
-                        'id': hostID,
-                        'name': hostName
-                    })
-        elif type == 'network':
-            for network in self.networkObjectList:
-
-                networkName = network.getName()
-                networkID = network.getUUID()
-                groupName = network.getGroupMembership()
-
-                if groupName not in groupDict:
-                    self.logger.info("Group Not Found, Added as new to List. {Network: " + networkName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName] = []
-                    groupDict[groupName].append({
-                        'type': 'Network',
-                        'id': networkID,
-                        'name': networkName
-                    })
-                else:
-                    self.logger.info("Group Discovered and Added. {Network: " + networkName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName].append({
-                        'type': 'Network',
-                        'id': networkID,
-                        'name': networkName
-                    })
-
-        elif type == 'url':
+        if type == 'url':
             for url in self.URLObjectList:
+                for i in self.allUrlObjectList:
+                    if url.getName() == i[0]:
+                        urlName = url.getName()
+                        urlID = i[1]
+                        groupName = url.getGroupMembership()
 
-                urlName = url.getName()
-                urlID = url.getUUID()
-                groupName = url.getGroupMembership()
+                        if groupName not in groupDict:
+                            groupDict[groupName] = []
+                            groupDict[groupName].append({
+                                'type': 'Url',
+                                'id': urlID,
+                                'name': urlName
+                            })
 
-                if groupName not in groupDict:
-                    self.logger.info("Group Not Found, Added as new to List. {URL: " + urlName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName] = []
-                    groupDict[groupName].append({
-                        'type': 'Url',
-                        'id': urlID,
-                        'name': urlName
-                    })
+                        else:
+                            groupDict[groupName].append({
+                                'type': 'Url',
+                                'id': urlID,
+                                'name': urlName
+                            })
+        elif type == 'network' or type == 'host' or type == 'fqdn':
+            for network in self.networkObjectList:
+                for i in self.allNetworkObjectList:
+                    if i[0] == network.getName():
 
-                else:
-                    self.logger.info("Group Discovered and Added. {URL: " + urlName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName].append({
-                        'type': 'Url',
-                        'id': urlID,
-                        'name': urlName
-                    })
-        elif type == 'fqdn':
+                        networkName = network.getName()
+                        networkID = i[1]
+                        groupName = network.getGroupMembership()
+
+                        if groupName not in groupDict:
+                            groupDict[groupName] = []
+                            groupDict[groupName].append({
+                                'type': 'Network',
+                                'id': networkID,
+                                'name': networkName
+                            })
+                        else:
+                            groupDict[groupName].append({
+                                'type': 'Network',
+                                'id': networkID,
+                                'name': networkName
+                            })
             for fqdn in self.FQDNObjectList:
+                for i in self.allFQDNObjects:
+                    if i[0] == fqdn.getName():
 
-                fqdnName = fqdn.getName()
-                fqdnID = fqdn.getID()
-                groupName = fqdn.getGroupMembership()
+                        fqdnName = fqdn.getName()
+                        fqdnID = i[1]
+                        groupName = fqdn.getGroupMembership()
 
-                if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
-                    self.logger.info(
-                        "Group Not Found, Added to as new List. {Host: " + fqdnName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName] = []
-                    groupDict[groupName].append({
-                        'type': 'fqdn',
-                        'id': fqdnID,
-                        'name': fqdnName
-                    })
-                else:
-                    self.logger.info(
-                        "Group Discovered and Added. {Host: " + fqdnName + ", GroupName: " + groupName + "}")
-                    groupDict[groupName].append({
-                        'type': 'fqdn',
-                        'id': fqdnID,
-                        'name': fqdnName
-                    })
-        self.logger.info("Group Membership Lists Resolved. {Type: " + type +"}")
+                        if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                            groupDict[groupName] = []
+                            groupDict[groupName].append({
+                                'type': 'fqdn',
+                                'id': fqdnID,
+                                'name': fqdnName
+                            })
+                        else:
+                            groupDict[groupName].append({
+                                'type': 'fqdn',
+                                'id': fqdnID,
+                                'name': fqdnName
+                            })
+            for host in self.hostObjectList:
+                for i in self.allHostObjectList:
+                    if i[0] == host.getName():
+
+                        hostName = host.getName()
+                        hostID = i[1]
+                        groupName = host.getGroupMembership()
+                        for j in groupName:
+
+                            if j not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                                groupDict[j] = []
+                                groupDict[j].append({
+                                    'type': 'Host',
+                                    'id': hostID,
+                                    'name': hostName
+                                })
+                            else:
+                                groupDict[j].append({
+                                    'type': 'Host',
+                                    'id': hostID,
+                                    'name': hostName
+                                })
+
 
         return groupDict
 
     def deleteGroup(self, id, type):
+        """
+        Deletes the group with the mentioned id.
+        :param id: The id of the group to be deleted.
+        :param type: The type of the group to be deleted.
+        :return: The status code of the request
+        """
         groupLocation = self.networkGroupLocation if type == "network" else self.urlGroupLocation
 
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, groupLocation, id)
@@ -322,98 +346,82 @@ class FMC(Provider):
                     verify=False
             )
 
-            return response.status_code  
+            return response.status_code
+
+    def mergeDict(self, groupDict, temp_body):
+        """
+        A helper function, which merges dictionaries.
+        :param groupDict: One of the dictionary to be merged.
+        :param temp_body: The second dictionary to be merged.
+        :return: The merged dictionary.
+        """
+
+        print("groupDict: ", groupDict)
+        print("TTT body: ", temp_body)
+        for group in groupDict:
+            value = 0
+            temp = group['name']
+            for diction in temp_body[0]:
+                if temp == diction['name']:
+                    value += 1
+            print("Value: ", value)
+            if value == 0:
+                temp_body[0].append(group)
+                print("Done adding")
+
+
+
+        print("Body: ", temp_body)
+
+        return temp_body
+
+
 
 
     def createGroups(self, type):
-
-        groupDict = self.__createGroupMembershipLists(type)
+        """
+        Creates the object groups.
+        :param type: The type of the group to be created.
+        :return: None
+        """
+        groupDict = self.createGroupMembershipLists(type)
+        temp = []
 
         for group in groupDict:
             if type == 'host' or type == 'fqdn':
                 type = 'network'
 
-            objGroup = ObjectGroup.GroupObject(
-                self.domainId, group, type, groupDict[group], self.fmcIP)
+            objGroup = ObjectGroup.GroupObject(self.domainId, group, type, groupDict[group], self.fmcIP)
             flag = True
 
             for i in self.allGroupsList:
                 if i[0] == objGroup.getName():
                     print("This groupName named ", objGroup.getName(),
-                          "already exists. Do you want to delete the object group and recreate it? Please answer 'Y' or 'N'. Please note that the existing networks in the group will get deleted from the group.")
-                    ans = str(input())
-                    if ans == 'N':
-                        flag = False
-                        print("Continued without deleting and recreating the group.")
-                    elif ans == 'Y':
-                        flag = False
-                        if i[3] == 'NetworkGroup':
-                            result = self.deleteGroup(i[1], 'network')
-                        else:
-                            result = self.deleteGroup(i[1], 'url')
+                          "already exists. Making a PUT request.")
+                    temp_body = [i[4], i[6]]
+                    print("Group test: ", groupDict[group])
+                    print("Temp body: ", temp_body)
+                    postBody = self.mergeDict(groupDict[group], temp_body)
+                    print("Temp_body: ", postBody)
 
-                        if int(result) < 299:
-                            self.allGroupsList.remove(i)
-                        result = objGroup.createGroup(self.apiToken)
-                        print("Making group: ", result)
-                        if int(result) < 299:
-                            self.allGroupsList.append(
-                                [objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-                    # if result < 299:
-                    #     self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), ])
-                    # self.allGroupsList.remove()
+                    put_object = ObjectGroup.GroupObject(self.domainId, group, type, postBody, self.fmcIP)
+                    put_object.modifyGroup(self.apiToken, i[1])
+                    temp.append([objGroup.getName(), i[1], 'objects', type+'Group', postBody[0], 'literals', postBody[1]])
+                    self.allGroupsList.remove(i)
+
+                    pass
+
                 if flag == True:
                     result = objGroup.createGroup(self.apiToken)
                     print("Making group: ", result)
                     if int(result) < 299:
-                        self.allGroupsList.append(
-                            [objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-
-            """
-            for i in self.allGroupsList:
-                print("i: ", i)
-                print("group: ", groupDict[group])
-
-                print("Comparison: ", self.compareContainingObjects(i[4], group))
-                if i[0] == objGroup.getName():
-                    print(i[0], objGroup.getName(), "Results")
-                    flag = False
-                    check = self.compareContainingObjects(i[4], group)  # gives True if all the component names in group are there in i[3], that is the component column of the group
-                    print("Check: ", check)
-                    if check == True:
-                        print("The groups have same components so no need to delete and recreate the object group")
-                    if check == False:
-                        print("This groupName named ", objGroup.getName(), "already exists. Do you want to delete the object group and recreate it? Please answer 'Y' or 'N'. Please note that the existing networks in the group will get deleted from the group.")
-                        ans = str(input())
-                        if ans == 'N':
-                            flag = False
-                            print("Continued without deleting and recreating the group.")
-                        elif ans == 'Y':
-                            flag = False
-                            if i[3] == 'NetworkGroup':
-                                result = self.deleteGroup(i[1], 'network')
-                            else:
-                                result = self.deleteGroup(i[1], 'url')
-
-
-                            if int(result) < 299:
-                                self.allGroupsList.remove(i)
-                            result = objGroup.createGroup(self.apiToken)
-                            print("Making group: ", result)
-                            if int(result) < 299:
-                                self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-                        # if result < 299:
-                        #     self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), ])
-                        # self.allGroupsList.remove()
-                if flag == True:
-                    print("Reaching here")
-                    result = objGroup.createGroup(self.apiToken)
-                    print("Making group: ", result)
-                    if int(result) < 299:
-                        self.allGroupsList.append([objGroup.getName(), objGroup.getUUID(), 'objects', i[3], groupDict[group]])
-            """
-
-            self.objectGroupList.append(objGroup)
+                        temp.append([objGroup.getName(), objGroup.getUUID(), 'objects', objGroup.getGroupMembership()+'Group', groupDict[group], 'literals', []])
+                        print("New group: ", temp)
+                        print("Successfully created")
+                        pass
+        for j in temp:
+            self.allGroupsList.append(j)
+        print("All group objects: ", self.allGroupsList)
 
     def compareContainingObjects(self, groupDict, objectDict):
         if len(groupDict) != len(objectDict):
@@ -431,6 +439,16 @@ class FMC(Provider):
                 return False
 
     def addObject(self, domain, type, name, value, description='', group=''):
+        """
+        Adds the creation of Python objects and their addition in the respective object lists.
+        :param domain: The domain UUID
+        :param type: The type of the object to be added.
+        :param name: The name of the object.
+        :param value: Value of the object.
+        :param description:
+        :param group: The group in which the object is to be added.
+        :return:
+        """
 
         if type == 'host':
             self.__addHost(name, value, description, group)
@@ -448,6 +466,11 @@ class FMC(Provider):
             return "Object type not configured"
 
     def getObjectList(self, objectType):
+        """
+        Retrieves the list of objects of the said type.
+        :param objectType: The type of the objects whose list is to be returned.
+        :return: The list containing the objects of the specified type.
+        """
 
         match objectType:
             case "host":
@@ -466,6 +489,11 @@ class FMC(Provider):
                 return None
 
     def applyObjectList(self, listType):
+        """
+        Creates the objects in FMC environment.
+        :param listType: The type of the objects whose FMC objects are to be created.
+        :return:
+        """
         match listType:
             case "host":
 
@@ -474,11 +502,12 @@ class FMC(Provider):
                     for i in self.allHostObjectList:
 
                         if i[0] == host.getName():
+                            print("i host: ", i)
                             flag_host = False
                             if ((i[0] == host.getName()) and (i[2] == host.getValue())):
                                 print(
                                     "Exactly same object so no need to delete. Condition 1.1 ", i[0])
-                                flag_network = False
+                                flag_host = False
                             elif ((i[0] == host.getName()) and (i[2] != host.getValue())):
                                 print(i[0], i[2],
                                       "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
@@ -490,8 +519,7 @@ class FMC(Provider):
                                         self.allHostObjectList.remove(i)
                                     result = host.createHost(self.authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
-                                        self.allHostObjectList.append([host.getName(), host.getUUID(
-                                        ), host.getValue(), host.getType(), host.getDescription()])
+                                        self.allHostObjectList.append([host.getName(), host.getUUID(), host.getValue(), host.getType(), host.getDescription()])
                                 else:
                                     print("Condition 1.2.2: Skipped this host.")
 
@@ -500,8 +528,8 @@ class FMC(Provider):
                         print("Condition 2", host.getName())
                         result = host.createHost(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
-                            self.allHostObjectList.append([host.getName(), host.getUUID(
-                            ), host.getValue(), host.getType(), host.getDescription()])
+                            self.allHostObjectList.append(
+                                [host.getName(), host.getUUID(), host.getValue(), host.getType(), host.getDescription()])
                         print(result)
 
             case "network":
@@ -528,7 +556,8 @@ class FMC(Provider):
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.remove(i)
 
-                                    result = network.createNetwork(self.authHeader)
+                                    authHeader = {"X-auth-access-token": self.apiToken}
+                                    result = network.createNetwork(authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.append([network.getName(), network.getUUID(
                                         ), network.getValue(), network.getType(), network.getDescription()])
@@ -636,6 +665,10 @@ class FMC(Provider):
                 return None
 
     def __getSecurityZones(self):
+        """
+        Retrieves the security zones from FMC environment.
+        :return: The list containing the details of all the security zones.
+        """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.securityZoneLocation)
 
@@ -657,6 +690,10 @@ class FMC(Provider):
         return returnList
 
     def __getPortObjects(self):
+        """
+        Retrieves the ports from FMC environment.
+        :return: The list containing the details of all the ports.
+        """
 
         portCount = 0
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.portLocation)
@@ -680,6 +717,10 @@ class FMC(Provider):
         return returnList
 
     def __getFilePolicies(self):
+        """
+        Retrieves the file policies from FMC environment.
+        :return: The list containing the details of all the file policies.
+        """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.filePolicyLocation)
 
@@ -701,6 +742,10 @@ class FMC(Provider):
         return returnList
 
     def __getURLCategories(self):
+        """
+        Retrieves the URL Categories from FMC environment.
+        :return: The list containing the details of all the URL Categories.
+        """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlCategoryLocation)
 
@@ -723,6 +768,10 @@ class FMC(Provider):
         return returnList
 
     def __getApplications(self):
+        """
+        Retrieves the Applications from FMC environment.
+        :return: The list containing the details of all Applications.
+        """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.applicationLocation)
 
@@ -745,6 +794,10 @@ class FMC(Provider):
         return returnList
 
     def __getAllNetworks(self):
+        """
+        Retrieves the Networks from FMC environment.
+        :return: The list containing the details of all the Networks.
+        """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation)
 
@@ -780,6 +833,10 @@ class FMC(Provider):
         return returnList
 
     def __getAllUrls(self):
+        """
+        Retrieves the URLs from FMC environment.
+        :return: The list containing the details of all the URLs.
+        """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation)
 
         networks = requests.get(
@@ -809,6 +866,10 @@ class FMC(Provider):
         return returnList
 
     def __getAllHosts(self):
+        """
+        Retrieves the Hosts from FMC environment.
+        :return: The list containing the details of all the Hosts.
+        """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation)
 
         hosts = requests.get(
@@ -839,6 +900,10 @@ class FMC(Provider):
         return returnList
 
     def __getAllFQDNs(self):
+        """
+        Retrieves the FQDNs from FMC environment.
+        :return: The list containing the details of all the FQDNs.
+        """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation)
 
         fqdn = requests.get(
@@ -847,91 +912,121 @@ class FMC(Provider):
             verify=False
         )
 
-        print("FQDN all response: ", fqdn.json())
-
-        fqdns = fqdn.json()['items']
         returnList = []
+        print("FQDN all response: ", fqdn.json())
+        if 'items' in fqdn.json().keys():
+            fqdns = fqdn.json()['items']
 
-        for cat in fqdns:
-            del cat['links']
 
-            newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
-                                               cat['id'])
+            for cat in fqdns:
+                del cat['links']
 
-            fqdn = requests.get(
-                url=newURL,
-                headers=self.authHeader,
-                verify=False
-            )
+                newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
+                                                   cat['id'])
 
-            fqdn = fqdn.json()
-            returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
+                fqdn = requests.get(
+                    url=newURL,
+                    headers=self.authHeader,
+                    verify=False
+                )
+
+                fqdn = fqdn.json()
+                returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
 
         return returnList
 
-    def __getAllGroups(self):
+    def __getNetworkGroups(self):
+
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkGroupLocation)
 
-        hosts = requests.get(
+        nwGroups = requests.get(
             url=url,
             headers=self.authHeader,
             verify=False
         )
 
-        hosts = hosts.json()['items']
+        nwGroups = nwGroups.json()
+        print("NW groups: ", nwGroups)
+
+    def __getAllGroups(self):
+        """
+        Retrieves the list of all the object groups from FMC environment.
+        :return: The list containing details of all the groups.
+        """
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkGroupLocation)
+
+        nwGroup = requests.get(
+            url=url,
+            headers=self.authHeader,
+            verify=False
+        )
+
+        nwGroup = nwGroup.json()['items']
         returnList = []
 
-        for cat in hosts:
+        for cat in nwGroup:
             del cat['links']
 
             newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
                                                self.networkGroupLocation, cat['id'])
 
-            host = requests.get(
+            nw = requests.get(
                 url=newUrl,
                 headers=self.authHeader,
                 verify=False
             )
+            if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
+                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', nw.json()['literals']])
+            if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
+                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
+            if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
+                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
+            if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
+                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
 
-            # host = host.json()['objects']
-            if 'objects' in host.json().keys():
-                returnList.append(
-                    [cat['name'], cat['id'], "objects", cat['type'], host.json()['objects']])
-            elif 'literals' in host.json().keys():
-                returnList.append(
-                    [cat['name'], cat['id'], "literals", cat['type'], host.json()['literals']])
+        url2 = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlGroupLocation)
 
-        hosts = requests.get(
-            url=url,
+        nwGroup = requests.get(
+            url=url2,
             headers=self.authHeader,
             verify=False
         )
 
-        hosts = hosts.json()['items']
+        urlGroup = nwGroup.json()['items']
+        returnList = []
 
-        for cat in hosts:
+        for cat in urlGroup:
             del cat['links']
 
             newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
-                                               self.networkGroupLocation, cat['id'])
+                                               self.urlGroupLocation, cat['id'])
 
-            host = requests.get(
+            nw = requests.get(
                 url=newUrl,
                 headers=self.authHeader,
                 verify=False
             )
-
-            # host = host.json()['objects']
-            if 'objects' in host.json().keys():
+            if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
+                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals',
+                                   nw.json()['literals']])
+            if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
                 returnList.append(
-                    [cat['name'], cat['id'], 'objects', cat['type'], host.json()['objects']])
-            elif 'literals' in host.json().keys():
+                    [cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
+            if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
                 returnList.append(
-                    [cat['name'], cat['id'], 'literals', cat['type'], host.json()['literals']])
+                    [cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
+            if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
+                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
+        print("Create group returnList: ", returnList)
 
         return returnList
 
     def deleteNetwork(self, id):
+        """
+        Deletes the Network object from FMC environment.
+        :param id: The id of the network object to be deleted.
+        :return: The status code of the deletion request.
+        """
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation, id)
         networks = requests.delete(
             url=url,
@@ -942,6 +1037,11 @@ class FMC(Provider):
         return networks.status_code
 
     def deleteUrls(self, id):
+        """
+        Deletes the URL object from FMC environment.
+        :param id: The id of the URL object to be deleted.
+        :return: The status code of the deletion request.
+        """
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation, id)
         networks = requests.delete(
             url=url,
@@ -952,6 +1052,11 @@ class FMC(Provider):
         return networks.status_code
 
     def deleteHosts(self, id):
+        """
+        Deletes the Host object from FMC environment.
+        :param id: The id of the Host object to be deleted.
+        :return: The status code of the deletion request.
+        """
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation, id)
         networks = requests.delete(
             url=url,
@@ -962,6 +1067,11 @@ class FMC(Provider):
         return networks.status_code
 
     def deleteFQDNs(self, id):
+        """
+        Deletes the FQDN object from FMC environment.
+        :param id: The id of the FQDN object to be deleted.
+        :return: The status code of the deletion request.
+        """
         url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation, id)
         networks = requests.delete(
             url=url,
@@ -971,6 +1081,10 @@ class FMC(Provider):
 
         return networks.status_code
     def mergeAllNetworkTypes(self):
+        """
+        Makes a collective list of all the Network types.
+        :return: The list containing all the hosts, networks, and FQDNs.
+        """
         networks = self.allNetworkObjectList
         hosts = self.allHostObjectList
 
@@ -983,6 +1097,11 @@ class FMC(Provider):
         return networks
 
     def createAccessRule(self, csvRow):
+        """
+        Creates policy rules line by line from the csv file.
+        :param csvRow: The line in csv file containing all the details of the rule.
+        :return:
+        """
         allNetworks = self.mergeAllNetworkTypes()
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
@@ -993,6 +1112,11 @@ class FMC(Provider):
         return response
 
     def createNATRules(self, csvRow):
+        """
+        Creates Auto NAT rules line by line from the csv file containing all the rules.
+        :param csvRow: The csv row, that is the line containing all the details of the NAT rule to be added.
+        :return: The response for the rule creation request.
+        """
 
         allNetworks = self.mergeAllNetworkTypes()
 
@@ -1011,6 +1135,11 @@ class FMC(Provider):
         return response
 
     def createManualNATrule(self, csvRow):
+        """
+        Creates Manual NAT rules line by line from the csv file containing all the rules.
+        :param csvRow: The csv row, that is the line containing all the details of the NAT rule to be added.
+        :return: The response of the rule creation request.
+        """
         allNetworks = self.mergeAllNetworkTypes()
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self,

@@ -43,7 +43,9 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
     parsedObjectCSV = readCSVFromFile(objectFile)
+    print("Object CSV: ", parsedObjectCSV)
     parsedRuleCSV = readCSVFromFile(ruleFile)
+    print("Rule CSV: ", parsedRuleCSV)
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
         while not checkValidIPAddress(ipAddress):
@@ -101,49 +103,68 @@ def main():
 
         Logger_AddBreakLine()
 
+
         for index, object in parsedObjectCSV.items():
+            groupList = object['group'].split('/')
+            print("Split list: ", groupList)
             labFMC.addObject('', object['type'],
                              object['name'],
                              object['value'],
-                             group=object['group'])
+                             group=groupList)
 
-        labFMC.getObjectList("host")
+        print("Hosts: ", labFMC.getObjectList("host"))
         log.info("retrieved Host list.")
 
         labFMC.applyObjectList("host")
         log.info("applied changes to Hosts.")
 
-        labFMC.createGroups("host")
-        log.info("created Host Groups.")
-
-        labFMC.getObjectList("network")
+        print("Networks: ", labFMC.getObjectList("network"))
         log.info("retrieved Network list.")
 
         labFMC.applyObjectList("network")
         log.info("applied Network results.")
 
-        labFMC.createGroups("network")
-        log.info("created Network group.")
-
-        labFMC.getObjectList("url")
+        print("URLs: ", labFMC.getObjectList("url"))
         log.info("retrieved URL list.")
 
         labFMC.applyObjectList("url")
         log.info("applied URL results.")
+        #
+        print("FQDN: ", labFMC.getObjectList("fqdn"))
+        log.info("retrieved FQDN list.")
 
-        labFMC.createGroups("url")
-        log.info("created group.")
+        labFMC.applyObjectList("fqdn")
+        log.info("applied FQDN results.")
+
+        print("URL membership: ", labFMC.createGroupMembershipLists('url'))
+        print("Host membership: ", labFMC.createGroupMembershipLists('host'))
+        # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
+
+        print("...................................................................")
+        labFMC.createGroups('host')
+        labFMC.createGroups('url')
+
+
+        # labFMC.createGroups('url')
+
+        # labFMC.createGroups("url")
+        # log.info("created group.")
+        #
+        # labFMC.createGroups("network")
+        # log.info("created Network group.")
+        # labFMC.createGroups("host")
+        # log.info("created Host Groups.")
 
         for index, rule in parsedRuleCSV.items():
             labFMC.createAccessRule(rule)
 
-        for index, rule in parsedRuleCSV.items():
-            labFMC.createNATRules(rule)
-
-        for index, rule in parsedRuleCSV.items():
-            labFMC.createManualNATrule(rule)
-
-        Logger_AddBreakLine()
+        # for index, rule in parsedRuleCSV.items():
+        #     labFMC.createNATRules(rule)
+        #
+        # for index, rule in parsedRuleCSV.items():
+        #     labFMC.createManualNATrule(rule)
+        #
+        # Logger_AddBreakLine()
 
     pass
 

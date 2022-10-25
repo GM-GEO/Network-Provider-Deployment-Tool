@@ -16,6 +16,13 @@ class HostObject:
 
     def __init__(self, resourceURL, groupMembership, postBody,
                  queryParameters: Dict):
+        """
+
+        :param resourceURL: The url to be used for making the API call.
+        :param groupMembership: The group name of the Host object.
+        :param postBody: The body to be passed while making the post requests.
+        :param queryParameters: The parameters to be passed for the api post request.
+        """
         self.creationURL = resourceURL
         self.objectPostBody = postBody
         self.objectUUID = ''
@@ -23,13 +30,18 @@ class HostObject:
 
         self.queryParameters = queryParameters
 
-        # if queryParameters:
-        #     self.queryParameters = queryParameters
-        #     pass
-
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
                 groupMembership: str):
+        """
+        Creates a constructor for adding FMC hosts.
+        :param provider: FMC in this case.
+        :param name: The name of the Host object.
+        :param value: Value of the Host object.
+        :param description: The description of the Host object.
+        :param groupMembership: The group name of the host object.
+        :return:
+        """
 
         objectPostBody = {}
         objectPostBody['name'] = name
@@ -37,8 +49,8 @@ class HostObject:
         objectPostBody['value'] = value
         objectPostBody['description'] = description
 
-        url = buildUrlForResource(provider.fmcIP, provider.domainLocation, '',
-                                  provider.networkLocation)
+        url = buildUrlForResource(provider.fmcIP, provider.domainLocation, provider.domainId,
+                                  provider.hostLocation)
 
         queryParameters = {}
 
@@ -47,6 +59,15 @@ class HostObject:
     @classmethod
     def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
                      description: str, groupMembership: str):
+        """
+       Creates a constructor for adding Palo Alto hosts.
+       :param provider: Palo Alto in this case.
+       :param name: The name of the Host object.
+       :param value: Value of the Host object.
+       :param description: The description of the Host object.
+       :param groupMembership: The group name of the host object.
+       :return:
+       """
 
         objectPostBody = {}
         objectPostBody['entry'] = {}
@@ -67,10 +88,11 @@ class HostObject:
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
     def createHost(self, apiToken):
-        # Set authentication in the header
-
-        # authHeaders = {"X-auth-access-token": apiToken}
-        # authHeaders = {"X-PAN-KEY": apiToken}
+        """
+        Initiates a POST request to create a Host object in the provider environment, which can be either FMC or Palo Alto.
+        :param apiToken: The authentication token to add in the headers.
+        :return: The status code of the response received from the api call.
+        """
         print("ApiToken for Host creation: ", apiToken)
 
         response = requests.post(url=self.creationURL,
@@ -158,27 +180,50 @@ class HostObject:
             print(allHosts)
 
     def getUUID(self):
-        return self.objectUUID
-        """_summary_
         """
+        :return: UUID of the FMC Host object.
+        """
+        return self.objectUUID
+
 
     def getName(self):
+        """
+        :return: Name of the FMC Host object.
+        """
         return self.objectPostBody['name']
 
     def getPName(self):
+        """
+        :return: Name of the Palo Alto host
+        """
         return self.objectPostBody['entry']['@name']
 
     def getType(self):
+        """
+        :return: Type of the FMC object.
+        """
         return self.objectPostBody['type']
 
     def getGroupMembership(self):
+        """
+        :return: Group of the FMC object.
+        """
         return self.groupMembership
 
     def getValue(self):
+        """
+        :return: Value of FMC Host
+        """
         return self.objectPostBody['value']
 
     def getPValue(self):
+        """
+        :return: Value of Palo Alto Host.
+        """
         return self.objectPostBody['entry']['ip-netmask']
 
     def getDescription(self):
+        """
+        :return: Description og FMC object.
+        """
         return self.objectPostBody['description']

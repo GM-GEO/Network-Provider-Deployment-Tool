@@ -1,7 +1,6 @@
 from typing import Dict
 import requests
 from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
-
 from Model.Providers.FMCConfig import FMC
 from Model.Providers.PaloAltoConfig import PaloAlto
 from Model.Providers.Provider import buildUrlForResource
@@ -15,6 +14,13 @@ class NetworkObject:
 
     def __init__(self, resourceURL, groupMembership, postBody,
                  queryParameters: Dict):
+        """
+
+        :param resourceURL:
+        :param groupMembership: The group that a Network object belongs to.
+        :param postBody: Body to be passed while making the post request for creating a Network object.
+        :param queryParameters: Query parameters to pass while making a post request.
+        """
 
         self.creationURL = resourceURL
         self.objectPostBody = postBody
@@ -26,6 +32,15 @@ class NetworkObject:
     @classmethod
     def FMCNetwork(cls, provider: FMC, name, value, description,
                    groupMembership):
+        """
+        Constructor for FMC Network object.
+        :param provider: FMC in this case
+        :param name: Name of the Network object.
+        :param value: Value of the Network object
+        :param description:
+        :param groupMembership: Group name the Network object falls in.
+        :return:
+        """
 
         objectPostBody = {}
 
@@ -43,6 +58,15 @@ class NetworkObject:
     @classmethod
     def PaloAltoNetwork(cls, provider: PaloAlto, name, value, description,
                        groupMembership):
+        """
+        Constructor for the Palo Alto Network object.
+        :param provider: Palo Alto in this case.
+        :param name: Name of Palo Alto Network object.
+        :param value: Value of the Palo Alto Network object.
+        :param description:
+        :param groupMembership: Group name the Network object falls in.
+        :return:
+        """
 
         print("Reaching here")
 
@@ -67,11 +91,13 @@ class NetworkObject:
         return cls(url, groupMembership, objectPostBody, queryParameters)
 
     def createNetwork(self, apiToken):
-        # Set authentication in the header
-
+        """
+        Makes a POST request to create a Network object.
+        :param apiToken: Authentication token
+        :return: The status code of the response received from the api call.
+        """
         logger = Logger_GetLogger()
-        # authHeaders = {"X-auth-access-token": apiToken}
-        # authHeaders = {"X-PAN-KEY": apiToken}
+
         print("ApiToken for NW creation: ", apiToken)
 
         response = requests.post(url=self.creationURL,

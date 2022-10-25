@@ -22,7 +22,9 @@ class AccessPolicyObject:
                                              policyUUID) + '/autonatrules'
         self.securityRuleP = buildUrlForResource(ip, domainLocation, '', accessPolicyLocation)
 
+
         self.urlTest = urls
+        print("All URLs required: ", self.urlTest)
 
 
         print("NAT auto rule url: ", self.autoNATruleURL)
@@ -43,13 +45,13 @@ class AccessPolicyObject:
                               securityZoneObjects, networkObjects, portObjects,
                               filePolicyObjects, urlCategoryObjects,
                               urlObjects, groupObjects, applicationObjects):
-        #https://10.255.20.10/api/fmc_config/v1/domain/e276abec-e0f2-11e3-8169-6d9ed49b625f/policy/ftdnatpolicies/005056B6-DCA2-0ed3-0000-004294974477/autonatrules
 
         accessRuleURL = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.accessPolicyLocation, "005056B6-DCA2-0ed3-0000-017179871248") + '/accessrules'
         autoNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/autonatrules'
         manualNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/manualnatrules'
 
         urls = [accessRuleURL, autoNATRuleUrl, manualNATRuleUrl]
+
         return cls(provider.fmcIP, provider.domainId, policyUUID,
                    provider.domainLocation, provider.accessPolicyLocation,
                    securityZoneObjects, networkObjects, portObjects,
