@@ -204,20 +204,22 @@ class FMC(Provider):
                         urlID = i[1]
                         groupName = url.getGroupMembership()
 
-                        if groupName not in groupDict:
-                            groupDict[groupName] = []
-                            groupDict[groupName].append({
-                                'type': 'Url',
-                                'id': urlID,
-                                'name': urlName
-                            })
+                        for j in groupName:
 
-                        else:
-                            groupDict[groupName].append({
-                                'type': 'Url',
-                                'id': urlID,
-                                'name': urlName
-                            })
+                            if groupName not in groupDict:
+                                groupDict[j] = []
+                                groupDict[j].append({
+                                    'type': 'Url',
+                                    'id': urlID,
+                                    'name': urlName
+                                })
+
+                            else:
+                                groupDict[j].append({
+                                    'type': 'Url',
+                                    'id': urlID,
+                                    'name': urlName
+                                })
         elif type == 'network' or type == 'host' or type == 'fqdn':
             for network in self.networkObjectList:
                 for i in self.allNetworkObjectList:
@@ -227,19 +229,21 @@ class FMC(Provider):
                         networkID = i[1]
                         groupName = network.getGroupMembership()
 
-                        if groupName not in groupDict:
-                            groupDict[groupName] = []
-                            groupDict[groupName].append({
-                                'type': 'Network',
-                                'id': networkID,
-                                'name': networkName
-                            })
-                        else:
-                            groupDict[groupName].append({
-                                'type': 'Network',
-                                'id': networkID,
-                                'name': networkName
-                            })
+                        for j in groupName:
+
+                            if groupName not in groupDict:
+                                groupDict[j] = []
+                                groupDict[j].append({
+                                    'type': 'Network',
+                                    'id': networkID,
+                                    'name': networkName
+                                })
+                            else:
+                                groupDict[j].append({
+                                    'type': 'Network',
+                                    'id': networkID,
+                                    'name': networkName
+                                })
             for fqdn in self.FQDNObjectList:
                 for i in self.allFQDNObjects:
                     if i[0] == fqdn.getName():
@@ -247,20 +251,21 @@ class FMC(Provider):
                         fqdnName = fqdn.getName()
                         fqdnID = i[1]
                         groupName = fqdn.getGroupMembership()
+                        for j in groupName:
 
-                        if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
-                            groupDict[groupName] = []
-                            groupDict[groupName].append({
-                                'type': 'fqdn',
-                                'id': fqdnID,
-                                'name': fqdnName
-                            })
-                        else:
-                            groupDict[groupName].append({
-                                'type': 'fqdn',
-                                'id': fqdnID,
-                                'name': fqdnName
-                            })
+                            if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                                groupDict[j] = []
+                                groupDict[j].append({
+                                    'type': 'fqdn',
+                                    'id': fqdnID,
+                                    'name': fqdnName
+                                })
+                            else:
+                                groupDict[j].append({
+                                    'type': 'fqdn',
+                                    'id': fqdnID,
+                                    'name': fqdnName
+                                })
             for host in self.hostObjectList:
                 for i in self.allHostObjectList:
                     if i[0] == host.getName():
