@@ -16,3 +16,5 @@ LAB_WIFI_FQDN_testingssssssssing,fqdn,www.fqdntest.com,Wi-Fi Lab,LAB_NETWORKS
 LAB_WIFI_FQDN_ttttesttt,fqdn,www.fqdntest.com,Wi-Fi Lab,LAB_NETWORKSSSing
 Win_Update_URL_3,url,http://*.windowsupdate.microsoft.com,Windows update URL 2,WINDOWS_UPDATE_URLS3
 Win_Update_URL_4,url,http://*.windowsupdate.microsoft.com,Windows update URL 2,WINDOWS_UPDATE_URLS3
+test2,TCP,50,test_TCP,WINDOWS_UPDATE_URLS3
+test4,UDP,50,test_TCP,WINDOWS_UPDATE_URLS3

@@ -180,19 +180,19 @@ class AccessPolicyObject:
         for port in self.ports:
             tempDict = {}
 
-            if port.getName() in sourceList:
+            if port[0] in sourceList:
                 tempDict['overridable'] = False
-                tempDict['name'] = port.getName()
-                tempDict['id'] = port.getID()
+                tempDict['name'] = port[0]
+                tempDict['id'] = port[1]
                 tempDict['type'] = 'Port'
                 sourcePortObjectList.append(tempDict)
 
             tempDict = {}
 
-            if port.getName() in destList:
+            if port[0] in destList:
                 tempDict['overridable'] = False
-                tempDict['name'] = port.getName()
-                tempDict['id'] = port.getID()
+                tempDict['name'] = port[0]
+                tempDict['id'] = port[1]
                 tempDict['type'] = 'Port'
                 destinationPortObjectList.append(tempDict)
 

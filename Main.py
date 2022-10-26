@@ -43,9 +43,9 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
     parsedObjectCSV = readCSVFromFile(objectFile)
-    print("Object CSV: ", parsedObjectCSV)
+    # print("Object CSV: ", parsedObjectCSV)
     parsedRuleCSV = readCSVFromFile(ruleFile)
-    print("Rule CSV: ", parsedRuleCSV)
+    # print("Rule CSV: ", parsedRuleCSV)
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
         while not checkValidIPAddress(ipAddress):
@@ -106,43 +106,48 @@ def main():
 
         for index, object in parsedObjectCSV.items():
             groupList = object['group'].split('/')
-            print("Split list: ", groupList)
+            # print("Split list: ", groupList)
             labFMC.addObject('', object['type'],
                              object['name'],
                              object['value'],
                              group=groupList)
 
-        print("Hosts: ", labFMC.getObjectList("host"))
-        log.info("retrieved Host list.")
-
-        labFMC.applyObjectList("host")
-        log.info("applied changes to Hosts.")
-
-        print("Networks: ", labFMC.getObjectList("network"))
-        log.info("retrieved Network list.")
-
-        labFMC.applyObjectList("network")
-        log.info("applied Network results.")
-
-        print("URLs: ", labFMC.getObjectList("url"))
-        log.info("retrieved URL list.")
-
-        labFMC.applyObjectList("url")
-        log.info("applied URL results.")
+        # print("Hosts: ", labFMC.getObjectList("host"))
+        # log.info("retrieved Host list.")
         #
-        print("FQDN: ", labFMC.getObjectList("fqdn"))
-        log.info("retrieved FQDN list.")
+        # labFMC.applyObjectList("host")
+        # log.info("applied changes to Hosts.")
+        #
+        # print("Networks: ", labFMC.getObjectList("network"))
+        # log.info("retrieved Network list.")
+        #
+        # labFMC.applyObjectList("network")
+        # log.info("applied Network results.")
+        #
+        # print("URLs: ", labFMC.getObjectList("url"))
+        # log.info("retrieved URL list.")
+        #
+        # labFMC.applyObjectList("url")
+        # log.info("applied URL results.")
+        # #
+        # print("FQDN: ", labFMC.getObjectList("fqdn"))
+        # log.info("retrieved FQDN list.")
+        #
+        # labFMC.applyObjectList("fqdn")
+        # log.info("applied FQDN results.")
+        print("TCP: ", labFMC.getObjectList("TCP"))
+        labFMC.applyObjectList("TCP")
 
-        labFMC.applyObjectList("fqdn")
-        log.info("applied FQDN results.")
-
-        print("URL membership: ", labFMC.createGroupMembershipLists('url'))
-        print("Host membership: ", labFMC.createGroupMembershipLists('host'))
+        print("TCP: ", labFMC.getObjectList("UDP"))
+        labFMC.applyObjectList("UDP")
+        #
+        # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
+        # print("Host membership: ", labFMC.createGroupMembershipLists('host'))
         # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
 
         print("...................................................................")
-        labFMC.createGroups('host')
-        labFMC.createGroups('url')
+        # labFMC.createGroups('host')
+        # labFMC.createGroups('url')
 
 
         # labFMC.createGroups('url')

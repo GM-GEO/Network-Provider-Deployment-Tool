@@ -5,7 +5,7 @@ class PortObject:
 
     objectType = 'port'
 
-    def __init__(self, name, id):
+    def __init__(self, name, value, protocol, description='', group=''):
         """
         The Port object with the name and id.
         :param name: The name of the Port object.

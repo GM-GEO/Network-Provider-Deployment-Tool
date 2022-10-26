@@ -1,6 +1,6 @@
 import requests
 from requests.auth import HTTPBasicAuth
-from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject
+from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject, TCP, UDP
 from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
 from Model.Providers.Provider import Provider, buildUrlForResource, buildUrlForResourceWithId
 from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
@@ -36,6 +36,9 @@ class FMC(Provider):
         self.objectGroupList = []
         self.URLObjectList = []
         self.FQDNObjectList = []
+        self.portObjectList = []
+        self.tcpObjectList = []
+        self.udpObjectList = []
 
         self.supportedObjectList = ["host", "network", "url", "fqdn"]
 
@@ -46,7 +49,7 @@ class FMC(Provider):
         self.urlLocation = "/object/urls"
         self.urlGroupLocation = "/object/urlgroups"
         self.securityZoneLocation = "/object/securityzones"
-        self.portLocation = "/object/ports"
+        self.portLocation = "/object/protocolportobjects"
         self.urlCategoryLocation = "/object/urlcategories"
         self.applicationLocation = "/object/applications"
         self.hostLocation = "/object/hosts"
@@ -59,7 +62,7 @@ class FMC(Provider):
         self.natRules = "/Policies/NatRules"
 
 
-        self.portObjectList = self.__getPortObjects()
+        self.allPortObjectList = self.__getAllPortObjects()
         self.securityZoneObjectList = self.__getSecurityZones()
         self.filePolicyObjectList = self.__getFilePolicies()
         self.urlCategoryObjectList = self.__getURLCategories()
@@ -188,6 +191,19 @@ class FMC(Provider):
         self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
 
+    def __addTCP(self, name, value, description='', group=''):
+
+        tcpObj = TCP.TCPObject.FMCTCP(self, name, value, description, group)
+        self.logger.info("TCP added. {Name: " + name + ", Value: " + value + "}")
+        return self.tcpObjectList.append(tcpObj)
+
+    def __addUDP(self, name, value, description='', group=''):
+
+        udpObj = UDP.UDPObject.FMCUDP(self, name, value, description, group)
+        self.logger.info("UDP added. {Name: " + name + ", Value: " + value + "}")
+        return self.udpObjectList.append(udpObj)
+
+
     def createGroupMembershipLists(self, type):
         """
         Makes the list of groups and the objects which are to be added in the respective groups.
@@ -206,7 +222,7 @@ class FMC(Provider):
 
                         for j in groupName:
 
-                            if groupName not in groupDict:
+                            if j not in groupDict:
                                 groupDict[j] = []
                                 groupDict[j].append({
                                     'type': 'Url',
@@ -231,7 +247,7 @@ class FMC(Provider):
 
                         for j in groupName:
 
-                            if groupName not in groupDict:
+                            if j not in groupDict:
                                 groupDict[j] = []
                                 groupDict[j].append({
                                     'type': 'Network',
@@ -253,7 +269,7 @@ class FMC(Provider):
                         groupName = fqdn.getGroupMembership()
                         for j in groupName:
 
-                            if groupName not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                            if j not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
                                 groupDict[j] = []
                                 groupDict[j].append({
                                     'type': 'fqdn',
@@ -467,6 +483,12 @@ class FMC(Provider):
         elif type == 'fqdn':
             self.__addFQDN(name, value, description, group)
 
+        elif type == 'TCP':
+            self.__addTCP(name, value, description, group)
+
+        elif type == 'UDP':
+            self.__addUDP(name, value, description, group)
+
         else:
             return "Object type not configured"
 
@@ -486,8 +508,10 @@ class FMC(Provider):
                 return self.URLObjectList
             case "fqdn":
                 return self.FQDNObjectList
-            case "port":
-                return self.portObjectList
+            case "TCP":
+                return self.tcpObjectList
+            case "UDP":
+                return self.udpObjectList
             case "securityzone":
                 return self.securityZoneObjectList
             case _:
@@ -536,6 +560,86 @@ class FMC(Provider):
                             self.allHostObjectList.append(
                                 [host.getName(), host.getUUID(), host.getValue(), host.getType(), host.getDescription()])
                         print(result)
+            case "TCP":
+
+                for tcp in self.tcpObjectList:
+                    flag_tcp = True
+                    for i in self.allPortObjectList:
+
+                        if i[0] == tcp.getName():
+                            print("i host: ", i)
+                            flag_tcp = False
+                            if ((i[0] == tcp.getName()) and (i[2] == tcp.getValue()) and i[3] == 'TCP'):
+                                print("Exactly same object so no need to delete. Condition 1.1 ", i[0])
+                                flag_tcp = False
+                            elif ((i[0] == tcp.getName()) and (i[2] != tcp.getValue())):
+                                print(i[0], i[2],
+                                      "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+                                ans = str(input())
+                                # if ans == 'Y':
+                                #     print("Condition 1.2.1")
+                                #     # result = self.deleteTCP(i[1])
+                                #     # if int(result) <= 299 and int(result) >= 200:
+                                #     #     self.allPortObjectList.remove(i)
+                                #     result = tcp.createTCP(self.authHeader)
+                                #     if int(result) <= 299 and int(result) >= 200:
+                                #         self.allHostObjectList.append(
+                                #             [tcp.getName(), tcp.getUUID(), tcp.getValue(), 'TCP', tcp.getType(),
+                                #              tcp.getDescription()])
+                                # else:
+                                #     print("Condition 1.2.2: Skipped this host.")
+
+                    print(flag_tcp)
+                    if flag_tcp == True:
+                        print("Condition 2", tcp.getName())
+                        result = tcp.createTCP(self.authHeader)
+                        if int(result) <= 299 and int(result) >= 200:
+                            self.allPortObjectList.append(
+                                [tcp.getName(), tcp.getID(), tcp.getValue(), 'TCP', tcp.getType(),
+                                             tcp.getDescription()])
+                        print(result)
+
+                        print("After ports: ", self.allPortObjectList)
+            case "UDP":
+
+                for udp in self.udpObjectList:
+                    flag_udp = True
+                    for i in self.allPortObjectList:
+
+                        if i[0] == udp.getName():
+                            print("i host: ", i)
+                            flag_udp = False
+                            if ((i[0] == udp.getName()) and (i[2] == udp.getValue()) and i[3] == 'UDP'):
+                                print("Exactly same object so no need to delete. Condition 1.1 ", i[0])
+                                flag_udp = False
+                            elif ((i[0] == udp.getName()) and (i[2] != udp.getValue())):
+                                print(i[0], i[2],
+                                      "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+                                ans = str(input())
+                                # if ans == 'Y':
+                                #     print("Condition 1.2.1")
+                                #     # result = self.deleteTCP(i[1])
+                                #     # if int(result) <= 299 and int(result) >= 200:
+                                #     #     self.allPortObjectList.remove(i)
+                                #     result = tcp.createTCP(self.authHeader)
+                                #     if int(result) <= 299 and int(result) >= 200:
+                                #         self.allHostObjectList.append(
+                                #             [tcp.getName(), tcp.getUUID(), tcp.getValue(), 'TCP', tcp.getType(),
+                                #              tcp.getDescription()])
+                                # else:
+                                #     print("Condition 1.2.2: Skipped this host.")
+
+                    print(flag_udp)
+                    if flag_udp == True:
+                        print("Condition 2", udp.getName())
+                        result = udp.createUDP(self.authHeader)
+                        if int(result) <= 299 and int(result) >= 200:
+                            self.allPortObjectList.append(
+                                [udp.getName(), udp.getID(), udp.getValue(), 'UDP', udp.getType(),
+                                 udp.getDescription()])
+                        print(result)
+
+                        print("After ports: ", self.allPortObjectList)
 
             case "network":
                 for network in self.networkObjectList:
@@ -694,7 +798,7 @@ class FMC(Provider):
 
         return returnList
 
-    def __getPortObjects(self):
+    def __getAllPortObjects(self):
         """
         Retrieves the ports from FMC environment.
         :return: The list containing the details of all the ports.
@@ -712,14 +816,42 @@ class FMC(Provider):
         ports = ports.json()['items']
         returnList = []
 
-        for port in ports:
-            del port['links']
-            # portCount + 1
-            returnList.append(Port.PortObject(port['name'], port['id']))
+        for cat in ports:
+            del cat['links']
 
-        # self.logger.info("Port objects added to list. {Ports:" + str(portCount) + "}")
+            newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.portLocation, cat['id'])
+
+            port = requests.get(
+                url=newUrl,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            port = port.json()
+
+            if port and port["name"]:
+                self.logger.info("Network retrieved. {Name: " + port['name'] + ", Value: " + port['port'] + "}")
+
+            returnList.append([port['name'], port['id'],
+                               port['port'], port['protocol'], port['type'], port['description']])
+
+        print("All ports: ", returnList)
 
         return returnList
+
+        # ports = ports.json()['items']
+        # returnList = []
+        # print("All ports json: ", ports)
+        #
+        # for port in ports:
+        #     del port['links']
+        #     # portCount + 1
+        #     returnList.append(Port.PortObject(port['name'], port['id']))
+        #
+        # # self.logger.info("Port objects added to list. {Ports:" + str(portCount) + "}")
+        # print("All ports: ", returnList)
+        #
+        # return returnList
 
     def __getFilePolicies(self):
         """
@@ -1110,7 +1242,7 @@ class FMC(Provider):
         allNetworks = self.mergeAllNetworkTypes()
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
-                                                       self.portObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList)
+                                                       self.allPortObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList)
         
         response = policyObject.createPolicy(self.apiToken, csvRow)
 
@@ -1129,7 +1261,7 @@ class FMC(Provider):
                                                                              '',
                                                                              self.securityZoneObjectList,
                                                                              allNetworks,
-                                                                             self.portObjectList,
+                                                                             self.allPortObjectList,
                                                                              self.filePolicyObjectList,
                                                                              self.urlCategoryObjectList,
                                                                              self.allUrlObjectList, self.allGroupsList,
@@ -1151,7 +1283,7 @@ class FMC(Provider):
                                                                              '',
                                                                              self.securityZoneObjectList,
                                                                              allNetworks,
-                                                                             self.portObjectList,
+                                                                             self.allPortObjectList,
                                                                              self.filePolicyObjectList,
                                                                              self.urlCategoryObjectList,
                                                                              self.allUrlObjectList, self.allGroupsList,
