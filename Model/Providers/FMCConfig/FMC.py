@@ -806,10 +806,14 @@ class FMC(Provider):
 
         portCount = 0
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.portLocation)
+        queryParameters = {}
+        queryParameters['limit'] = 1000
+        queryParameters['offset'] = 0
 
         ports = requests.get(
             url=url,
             headers=self.authHeader,
+            params=queryParameters,
             verify=False
         )
 
@@ -828,12 +832,14 @@ class FMC(Provider):
             )
 
             port = port.json()
+            # print("Main port: ", port)
 
-            if port and port["name"]:
-                self.logger.info("Network retrieved. {Name: " + port['name'] + ", Value: " + port['port'] + "}")
+            # if port and port["name"]:
+            #     self.logger.info("Network retrieved. {Name: " + port['name'] + ", Value: " + port['port'] + "}")
 
             returnList.append([port['name'], port['id'],
                                port['port'], port['protocol'], port['type'], port['description']])
+
 
         print("All ports: ", returnList)
 
@@ -1099,6 +1105,7 @@ class FMC(Provider):
         )
 
         nwGroup = nwGroup.json()['items']
+        print("All nw groups1: ", nwGroup)
         returnList = []
 
         for cat in nwGroup:
@@ -1112,6 +1119,7 @@ class FMC(Provider):
                 headers=self.authHeader,
                 verify=False
             )
+            print("One nw: ", nw.json())
             if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
                 returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', nw.json()['literals']])
             if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
@@ -1130,7 +1138,7 @@ class FMC(Provider):
         )
 
         urlGroup = nwGroup.json()['items']
-        returnList = []
+        # returnList = []
 
         for cat in urlGroup:
             del cat['links']
@@ -1230,25 +1238,40 @@ class FMC(Provider):
 
         for i in self.allFQDNObjects:
             networks.append(i)
+        print("All groups: ", self.allGroupsList)
+        for i in self.allGroupsList:
+            print("type", i[3])
+            if i[3] == 'NetworkGroup':
+                networks.append([i[0], i[1], i[4], i[3], ''])
 
         return networks
+    def mergeURLwithURLGroups(self):
+        urls = self.allUrlObjectList
+        print("Before merging: ", urls)
 
-    def createAccessRule(self, csvRow):
+        for i in self.allGroupsList:
+            print("type url", i[3])
+            if i[3] == 'NetworkGroup':
+                urls.append([i[0], i[1], i[4], i[3], ''])
+        return urls
+    def createAccessRule(self, csvRow, ruleCategory):
         """
         Creates policy rules line by line from the csv file.
         :param csvRow: The line in csv file containing all the details of the rule.
         :return:
         """
         allNetworks = self.mergeAllNetworkTypes()
+        allUrls = self.mergeURLwithURLGroups()
+        print("Merged urlS: ", allUrls)
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
-                                                       self.allPortObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, self.allUrlObjectList, self.allGroupsList, self.applicationObjectList)
+                                                       self.allPortObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, allUrls, self.allGroupsList, self.applicationObjectList, ruleCategory)
         
-        response = policyObject.createPolicy(self.apiToken, csvRow)
+        response = policyObject.createPolicy(self.apiToken, csvRow, ruleCategory)
 
         return response
 
-    def createNATRules(self, csvRow):
+    def createNATRules(self, csvRow, ruleCategory):
         """
         Creates Auto NAT rules line by line from the csv file containing all the rules.
         :param csvRow: The csv row, that is the line containing all the details of the NAT rule to be added.
@@ -1265,13 +1288,13 @@ class FMC(Provider):
                                                                              self.filePolicyObjectList,
                                                                              self.urlCategoryObjectList,
                                                                              self.allUrlObjectList, self.allGroupsList,
-                                                                             self.applicationObjectList)
+                                                                             self.applicationObjectList, ruleCategory)
 
         response = policyObject.createNATRules(self.apiToken, csvRow)
 
         return response
 
-    def createManualNATrule(self, csvRow):
+    def createManualNATrule(self, csvRow, ruleCategory):
         """
         Creates Manual NAT rules line by line from the csv file containing all the rules.
         :param csvRow: The csv row, that is the line containing all the details of the NAT rule to be added.
@@ -1287,7 +1310,7 @@ class FMC(Provider):
                                                                              self.filePolicyObjectList,
                                                                              self.urlCategoryObjectList,
                                                                              self.allUrlObjectList, self.allGroupsList,
-                                                                             self.applicationObjectList)
+                                                                             self.applicationObjectList, ruleCategory)
 
         response = policyObject.createManualNATrule(self.apiToken, csvRow)
 

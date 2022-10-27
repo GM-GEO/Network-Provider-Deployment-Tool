@@ -44,7 +44,7 @@ class AccessPolicyObject:
     def FMCAccessPolicyObject(cls, provider: FMC, policyUUID,
                               securityZoneObjects, networkObjects, portObjects,
                               filePolicyObjects, urlCategoryObjects,
-                              urlObjects, groupObjects, applicationObjects):
+                              urlObjects, groupObjects, applicationObjects, ruleCategory):
 
         accessRuleURL = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.accessPolicyLocation, "005056B6-DCA2-0ed3-0000-017179871248") + '/accessrules'
         autoNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/autonatrules'
@@ -106,18 +106,22 @@ class AccessPolicyObject:
     def __getNetworks(self, csvRow):
         sourceNetwork = None
         destinationNetwork = None
+        print("Acesspolicy nws: ", self.networks)
 
         for network in self.networks:
+            print("Comparing values: ", csvRow['sourceNetworks'], network[0])
             if network[0] == csvRow['sourceNetworks']:
+                print("In networks 1")
                 sourceNetwork = {}
                 sourceNetwork['name'] = network[0]
                 # sourceNetwork['id'] = network.getUUID()
                 sourceNetwork['id'] = network[1]
-                sourceNetwork[
-                    'type'] = ObjectTypeEnum.NETWORK.value.capitalize()
+                sourceNetwork['type'] = ObjectTypeEnum.NETWORK.value.capitalize()
                 sourceNetwork['overridable'] = False
                 print("Condition 1: ", sourceNetwork)
             elif network[0] == csvRow['destinationNetworks']:
+                print("In networks 2")
+
                 destinationNetwork = {}
                 destinationNetwork['name'] = network[0]
                 # destinationNetwork['id'] = network.getUUID()
@@ -130,6 +134,8 @@ class AccessPolicyObject:
         if sourceNetwork == None or destinationNetwork == None:  #if the network was not found in the list of network objects
             for group in self.groups:
                 if group[0] == csvRow['sourceNetworks']:
+                    print("In networks 3")
+
                     sourceNetwork = {}
                     sourceNetwork['name'] = group[0]
                     sourceNetwork['id'] = group[1]
@@ -137,6 +143,8 @@ class AccessPolicyObject:
                     print("Condition 3: ", sourceNetwork)
 
                 if group[0] == csvRow['destinationNetworks']:
+                    print("In networks 4")
+
                     destinationNetwork = {}
                     destinationNetwork['name'] = group[0]
                     destinationNetwork['id'] = group[1]
@@ -290,7 +298,7 @@ class AccessPolicyObject:
 
         return urlDictList
 
-    def createPolicy(self, apiToken, csvRow):
+    def createPolicy(self, apiToken, csvRow, ruleCategory):
         # set authentication in the header
         logger = Logger_GetLogger()
         logger.info("Initiating Policy Creation")
@@ -313,6 +321,11 @@ class AccessPolicyObject:
         logger.info("Got data from CSV files")
 
         # create body for post request
+        queryParameters = {}
+        queryParameters['category'] = ruleCategory
+        queryParameters['insertBefore'] = int(csvRow['sequence'])+1
+        queryParameters['insertAfter'] = int(csvRow['sequence'])-1
+
         postBody = {}
         postBody['action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
         postBody['enabled'] = True
@@ -327,6 +340,8 @@ class AccessPolicyObject:
 
         postBody['logBegin'] = False if "Permit" in csvRow['action'] else True
         postBody['logEnd'] = not postBody['logBegin']
+        # postBody['metadata'] = {}
+        # postBody['metadata']['section'] = 'DMZ_LAB'
         postBody['sourceNetworks'] = {'objects': [networks[0]]}
         postBody['sourceZones'] = {"objects": [securityZones[0]]}
         postBody['destinationNetworks'] = {'objects': [networks[1]]}
@@ -352,6 +367,7 @@ class AccessPolicyObject:
 
         response = requests.post(url=self.urlTest[0],
                                  headers=authHeaders,
+                                 params=queryParameters,
                                  json=postBody,
                                  verify=False)
 

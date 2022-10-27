@@ -41,11 +41,14 @@ def main():
         log.info("Select the Rules file (supported extensions: .csv): ")
         ruleFile = str(input())
 
+    rule_category = ruleFile[:-4]
+    print("Rule category: ", rule_category)
+
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
     parsedObjectCSV = readCSVFromFile(objectFile)
     # print("Object CSV: ", parsedObjectCSV)
     parsedRuleCSV = readCSVFromFile(ruleFile)
-    # print("Rule CSV: ", parsedRuleCSV)
+    print("Rule CSV: ", parsedRuleCSV)
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
         while not checkValidIPAddress(ipAddress):
@@ -161,7 +164,7 @@ def main():
         # log.info("created Host Groups.")
 
         for index, rule in parsedRuleCSV.items():
-            labFMC.createAccessRule(rule)
+            labFMC.createAccessRule(rule, rule_category)
 
         # for index, rule in parsedRuleCSV.items():
         #     labFMC.createNATRules(rule)
