@@ -138,11 +138,11 @@ def main():
         #
         # labFMC.applyObjectList("fqdn")
         # log.info("applied FQDN results.")
-        print("TCP: ", labFMC.getObjectList("TCP"))
-        labFMC.applyObjectList("TCP")
-
-        print("TCP: ", labFMC.getObjectList("UDP"))
-        labFMC.applyObjectList("UDP")
+        # print("TCP: ", labFMC.getObjectList("TCP"))
+        # labFMC.applyObjectList("TCP")
+        #
+        # print("TCP: ", labFMC.getObjectList("UDP"))
+        # labFMC.applyObjectList("UDP")
         #
         # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
         # print("Host membership: ", labFMC.createGroupMembershipLists('host'))

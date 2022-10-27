@@ -323,7 +323,7 @@ class AccessPolicyObject:
         # create body for post request
         queryParameters = {}
         queryParameters['category'] = ruleCategory
-        queryParameters['insertBefore'] = int(csvRow['sequence'])+1
+        queryParameters['insertBefore'] = int(csvRow['sequence'])
         # queryParameters['insertAfter'] = int(csvRow['sequence'])-1
 
         postBody = {}
@@ -349,7 +349,7 @@ class AccessPolicyObject:
         postBody['sourcePorts'] = {'objects': ports[0]}
         postBody['destinationPorts'] = {'objects': ports[1]}
         postBody['urls'] = {
-            "urlCategoriesWithReputation": urlCategories,
+            # "urlCategoriesWithReputation": urlCategories,
             "objects": urls
         }
         # postBody['applications'] = {
@@ -367,7 +367,7 @@ class AccessPolicyObject:
 
         response = requests.post(url=self.urlTest[0],
                                  headers=authHeaders,
-                                 # params=queryParameters,
+                                 params=queryParameters,
                                  json=postBody,
                                  verify=False)
 
