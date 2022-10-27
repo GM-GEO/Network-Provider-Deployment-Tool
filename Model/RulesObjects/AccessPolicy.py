@@ -253,14 +253,14 @@ class AccessPolicyObject:
                 application.append(app[0])
         return application
 
-    def __getUrlCategories(self, csvUrlCategories):
+    def __getUrlCategories(self, csvUrlCategories, csvRow):
 
         returnList = []
 
         for cat in self.urlCategories:
             tempDict = {}
             if cat.getName() in csvUrlCategories:
-                tempDict['reputation'] = "ANY_EXCEPT_UNKNOWN"
+                tempDict['reputation'] = csvRow['urlCategoryReputation']
                 tempDict['category'] = {
                     "name": cat.getName(),
                     "id": cat.getID(),
@@ -314,7 +314,7 @@ class AccessPolicyObject:
         networks = self.__getNetworks(csvRow)
         ports = self.__getPorts(csvSourcePorts, csvDestinationPorts, csvRow)
         filePolicy = self.__getFilePolicies(csvRow)
-        urlCategories = self.__getUrlCategories(csvUrlCategories)
+        urlCategories = self.__getUrlCategories(csvUrlCategories, csvRow)
         urls = self.__getUrls(csvRow)
         application = self.__getApplication(csvRow)
 
@@ -324,7 +324,7 @@ class AccessPolicyObject:
         queryParameters = {}
         queryParameters['category'] = ruleCategory
         queryParameters['insertBefore'] = int(csvRow['sequence'])+1
-        queryParameters['insertAfter'] = int(csvRow['sequence'])-1
+        # queryParameters['insertAfter'] = int(csvRow['sequence'])-1
 
         postBody = {}
         postBody['action'] = "ALLOW" if "Permit" in csvRow['action'] else "BLOCK"
@@ -367,7 +367,7 @@ class AccessPolicyObject:
 
         response = requests.post(url=self.urlTest[0],
                                  headers=authHeaders,
-                                 params=queryParameters,
+                                 # params=queryParameters,
                                  json=postBody,
                                  verify=False)
 
@@ -513,7 +513,7 @@ class AccessPolicyObject:
         networks = self.__getPNetworks(csvRow)
         ports = self.__getPPorts(csvSourcePorts, csvDestinationPorts, csvRow)
         filePolicy = self.__getFilePolicies(csvRow)
-        urlCategories = self.__getUrlCategories(csvUrlCategories)
+        urlCategories = self.__getUrlCategories(csvUrlCategories, csvRow)
         urls = self.__getPUrls(csvRow)
         application = self.__getPApplication(csvRow)
 
@@ -578,7 +578,7 @@ class AccessPolicyObject:
         networks = self.__getPNetworks(csvRow)
         ports = self.__getPPorts(csvSourcePorts, csvDestinationPorts, csvRow)
         filePolicy = self.__getFilePolicies(csvRow)
-        urlCategories = self.__getUrlCategories(csvUrlCategories)
+        urlCategories = self.__getUrlCategories(csvUrlCategories, csvRow)
         urls = self.__getUrls(csvRow)
         application = self.__getPApplication(csvRow)
 

@@ -11,18 +11,18 @@ from Model.Utilities.LoggingUtils import Logger_GetLogger
 
 class TCPObject:
 
-    def __init__(self, resourceUrl, groupMembership, postBody,
+    def __init__(self, resourceUrl, postBody,
                  queryParameters: Dict):
 
         self.creationURL = resourceUrl
         self.objectPostBody = postBody
         self.objectUUID = ''
-        self.groupMembership = groupMembership
+
 
         self.queryParameters = queryParameters
 
     @classmethod
-    def FMCTCP(cls, provider: FMC, name, value, description, groupMembership):
+    def FMCTCP(cls, provider: FMC, name, value, description):
 
         objectPostBody = {}
         objectPostBody['name'] = name
@@ -35,7 +35,7 @@ class TCPObject:
                                   provider.domainId, provider.portLocation)
 
         queryParameters = {}
-        return cls(url, groupMembership, objectPostBody, queryParameters)
+        return cls(url, objectPostBody, queryParameters)
 
     # @classmethod
     # def PaloAltoFQDN(cls, provider: PaloAlto, name, value, description,
@@ -96,7 +96,7 @@ class TCPObject:
         return self.objectUUID
 
     def getGroupMembership(self):
-        return self.groupMembership
+        return None
 
     def getType(self):
         return self.objectPostBody['type']

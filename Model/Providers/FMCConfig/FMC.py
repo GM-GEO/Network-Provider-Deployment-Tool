@@ -193,7 +193,7 @@ class FMC(Provider):
 
     def __addTCP(self, name, value, description='', group=''):
 
-        tcpObj = TCP.TCPObject.FMCTCP(self, name, value, description, group)
+        tcpObj = TCP.TCPObject.FMCTCP(self, name, value, description)
         self.logger.info("TCP added. {Name: " + name + ", Value: " + value + "}")
         return self.tcpObjectList.append(tcpObj)
 
@@ -807,7 +807,7 @@ class FMC(Provider):
         portCount = 0
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.portLocation)
         queryParameters = {}
-        queryParameters['limit'] = 1000
+        queryParameters['limit'] = 2000
         queryParameters['offset'] = 0
 
         ports = requests.get(
@@ -818,6 +818,7 @@ class FMC(Provider):
         )
 
         ports = ports.json()['items']
+        print("Alllll ports: ", ports)
         returnList = []
 
         for cat in ports:
@@ -830,15 +831,21 @@ class FMC(Provider):
                 headers=self.authHeader,
                 verify=False
             )
+            print("Before: ", port.content)
 
             port = port.json()
+            print("After: ", port)
             # print("Main port: ", port)
+            # print(port['name'], port['port'])
+
 
             # if port and port["name"]:
             #     self.logger.info("Network retrieved. {Name: " + port['name'] + ", Value: " + port['port'] + "}")
-
-            returnList.append([port['name'], port['id'],
-                               port['port'], port['protocol'], port['type'], port['description']])
+            if 'port' in port.keys():
+                returnList.append([port['name'], port['id'],
+                                   port['port'], port['protocol'], port['type'], port['description']])
+            else:
+                print("The port ", port['name'], " does not have a port value associated with it.")
 
 
         print("All ports: ", returnList)
@@ -1251,7 +1258,7 @@ class FMC(Provider):
 
         for i in self.allGroupsList:
             print("type url", i[3])
-            if i[3] == 'NetworkGroup':
+            if i[3] == 'UrlGroup':
                 urls.append([i[0], i[1], i[4], i[3], ''])
         return urls
     def createAccessRule(self, csvRow, ruleCategory):
