@@ -41,7 +41,9 @@ def main():
         log.info("Select the Rules file (supported extensions: .csv): ")
         ruleFile = str(input())
 
-    rule_category = ruleFile[:-4]
+    # index = ruleFile.rfind('/'))
+
+    rule_category = ruleFile[ruleFile.rfind('/')+1:-4]
     print("Rule category: ", rule_category)
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
@@ -121,11 +123,11 @@ def main():
         # labFMC.applyObjectList("host")
         # log.info("applied changes to Hosts.")
         #
-        # print("Networks: ", labFMC.getObjectList("network"))
-        # log.info("retrieved Network list.")
-        #
-        # labFMC.applyObjectList("network")
-        # log.info("applied Network results.")
+        print("Networks: ", labFMC.getObjectList("network"))
+        log.info("retrieved Network list.")
+
+        labFMC.applyObjectList("network")
+        log.info("applied Network results.")
         #
         # print("URLs: ", labFMC.getObjectList("url"))
         # log.info("retrieved URL list.")
@@ -138,11 +140,17 @@ def main():
         #
         # labFMC.applyObjectList("fqdn")
         # log.info("applied FQDN results.")
-        # print("TCP: ", labFMC.getObjectList("TCP"))
-        # labFMC.applyObjectList("TCP")
-        #
-        # print("TCP: ", labFMC.getObjectList("UDP"))
-        # labFMC.applyObjectList("UDP")
+
+        print("FQDN: ", labFMC.getObjectList("range"))
+        log.info("retrieved Range list.")
+
+        labFMC.applyObjectList("range")
+        log.info("applied Range results.")
+        print("TCP: ", labFMC.getObjectList("TCP"))
+        labFMC.applyObjectList("TCP")
+
+        print("TCP: ", labFMC.getObjectList("UDP"))
+        labFMC.applyObjectList("UDP")
         #
         # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
         # print("Host membership: ", labFMC.createGroupMembershipLists('host'))

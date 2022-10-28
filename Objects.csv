@@ -1,0 +1,86 @@
+name,type,value,description,group,Group Description
+Cameco_Internal_Supernet_10.0.0.0-8,network,10.0.0.0/8,Cameco,EQ_Inside_Private_Networks-Group,
+EQ_Inside_DNS_Server_10.11.25.30,host,10.11.25.30,Equinix DNS Server,EQ_INSIDE_DNS_Servers-Group,Equinix DC DNS Servers Group
+STN_Inside_DNS_Server_10.11.25.30,host,10.1.25.30,STN DNS Server,STN_INSIDE_DNS_Servers-Group,STN DC DNS Servers Group
+Rabbit_Inside_DNS_Server_10.18.25.30,host,10.18.25.30,Rabbit Lake DNS server,INSIDE_DNS_North_Group,SK North DNS Servers Group
+McArthur_inside_DNS_Server_10.16.25.30,host,10.16.25.30,McArthur River DNS server,INSIDE_DNS_North_Group,SK North DNS Servers Group
+Cigar_inside_DNS_Server_10.19.25.30,host,10.19.25.30,Cigar Lake DNS server,INSIDE_DNS_North_Group,SK North DNS Servers Group
+PHCF_Inside_DNS_Server_10.32.25.30,host,10.32.25.30,PHCF DNS Server,INSIDE_DNS_Ontario_Group,Ontario DNS Servers Group
+BlindRiver_Inside_DNS_Server_10.34.25.30,host,10.34.25.30,BlindRiver DNS Server,INSIDE_DNS_Ontario_Group,Ontario DNS Servers Group
+Key_Inside_Loggernet_PC_10.17.128.96,host,10.17.128.96,Internal Key Lake Loggernet PC ,,
+OUTSIDE_Azure_Node_40.85.217.214,host,40.85.217.214,Outside Azur Node,,
+KEY_INSIDE_Supernet_10.17.0.0-16,network,10.17.0.0/16,Key lake Supernet,,
+OUTSIDE_nanoprecisedataservices.com,fqdnv4,nanoprecisedataservices.com,Outside Nano Precise services,,
+OUTSIDE_192.101.77.209,host,192.101.77.209,Outside IP 192.101.77.209,,
+OUTSIDE_Loggernet_system_70.28.141.175,host,70.28.141.175,Sasktel Hosted Loggernet system IP,,
+EQ_INSIDE_pcfs1411.cameco.com,fqdnv4,pcfs1411.cameco.com,Inside NanoPrecise user 1,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+EQ_INSIDE_pcfs1632.cameco.com,fqdnv4,pcfs1632.cameco.com,Inside NanoPrecise user 2,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+EQ_INSIDE_pcsk21181.cameco.com,fqdnv4,pcsk21181.cameco.com,Inside NanoPrecise user 3,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+EQ_INSIDE_pcsk21195.cameco.com,fqdnv4,pcsk21195.cameco.com,Inside NanoPrecise user 4,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+EQ_INSIDE_pcsk21300.cameco.com,fqdnv4,pcsk21300.cameco.com,Inside NanoPrecise user 5,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+EQ_INSIDE_pcsk9230.cameco.com,fqdnv4,pcsk9230.cameco.com,Inside NanoPrecise user 6,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+EQ_INSIDE_pcfs21104.cameco.com,fqdnv4,pcfs21104.cameco.com,Inside NanoPrecise user 7,EQ_INSIDE_Nanoprecise_Users-Group,Inside NanoPrecise Users
+OUTSIDE_sftp-srv.geotech.ca,fqdnv4,sftp-srv.geotech.ca,Outside sftp-srv.geotech.ca,,
+OUTSIDE_cdn2.canadacast.ca,fqdnv4,cdn2.canadacast.ca,Outside cdn2.canadacast.ca,,
+OUTSIDE_download.isiglobal.ca,fqdnv4,download.isiglobal.ca,Outside download.isiglobal.ca,,
+OUTSIDE_72.1.220.187,host,72.1.220.187,Outside IP 72.1.220.187,,
+OUTSIDE_184.170.135.11,host,184.170.135.11,Outside IP 184.170.135.11,,
+OUTSIDE_lqtservice-web.wbx2.com,fqdnv4,lqtservice-web.wbx2.com,Cisco webex meeting 1,OUTSIDE_CiscoWebex-group,Cisco webex meeting
+OUTSIDE_callcontrol.huron-dev.com,fqdnv4,callcontrol.huron-dev.com,Cisco webex meeting 2,OUTSIDE_CiscoWebex-group,Cisco webex meeting
+CIGAR_INSIDE_Supernet_10.19.0.0-16,network,10.19.0.0/16,Cigar Lake Supernet,,
+RABBIT_INSIDE_Supernet_10.18.0.0-16,network,10.18.0.0/16,Rabbit Lake Supernet,,
+McARTHUR_INSIDE_Supernet_10.16.0.0-16,network,10.16.0.0/16,McArthur River Supernet,,
+OUTSIDE_data2.axystechnologies.com,fqdnv4,data2.axystechnologies.com,Outside data2.axystechnologies.com,,
+OUTSIDE_GoogleMeet_74.125.250.0-24,network,74.125.250.0/24,Outside Google Meet address 1,OUTSIDE_GoogleMeet_Networks Group,Google meet network
+OUTSIDE_GoogleMeet_142.250.82.0-24,network,142.250.82.0/24,Outside Google Meet address 2,OUTSIDE_GoogleMeet_Networks Group,Google meet network
+OUTSIDE_Custom_Courier _70.64.166.216,host,70.64.166.216,Outside_Custom_Courier IP 70.64.166.216,OUTSIDE_Custom_Courier-Group,Custom Courier Group
+OUTSIDE_Custom_Courier _70.64.128.175,host,70.64.128.175,Outside_Custom_Courier  IP 70.64.128.175,OUTSIDE_Custom_Courier-Group,Custom Courier Group
+OUTSIDE_Custom_Courier _184.69.58.126,host,184.69.58.126,Outside_Custom_Courier  IP 184.69.58.126,OUTSIDE_Custom_Courier-Group,Custom Courier Group
+OUTSIDE_142.165.178.148,host,142.165.178.148,Outside IP 142.165.178.148,,
+OUTSIDE_Solium_SFTP_server ,host,148.59.242.242,Outside Solium sFTP server,,
+OUTSIDE_U_of_M _Library,host,130.179.18.78,University of Manitoba Library,,
+OUTSIDE_204.193.138.196,host,204.193.138.196,Outside IP 204.193.138.196,,
+OUTSIDE_71.17.10.171_71.17.10.171,host,71.17.10.171,Outside IP 71.17.10.171,,
+EQ_INSIDE_VPN_10.11.244.0-22,network,10.11.244.0/22,Inside Ontario VPN block 1,EQ_INSIDE_VPN-Group,EQ Inside VPN IP Block
+EQ_INSIDE_VPN_10.11.248.0-22,network,10.11.248.0/22,Inside Ontario VPN block 2,EQ_INSIDE_VPN-Group,EQ Inside VPN IP Block
+OUTSIDE_ftp.primac.ca,fqdnv4,ftp.primac.ca,Outside ftp.primac.ca,,
+OUTSIDE_covid19results.ehealthontario.ca,fqdnv4,covid19results.ehealthontario.ca,Outside Ontario E-Health address,,
+PHCF_INSIDE_Workstations_10.32.48.0,network,10.32.48.0/20,PHCF Workstation Subnet,,
+OUTSIDE_VibrationAnalysis_AWS,host,34.226.0.162,Vibration Analysis Software at PHCF AWS Server,,
+OUTSIDE_13.67.236.196,host,13.67.236.196,Outside Drawboad server,,
+OUTSIDE_VibrationAnalysis_RDP,host,52.6.247.137,Vibration Analysis Software at PHCF RDP gateway,,
+OUTSIDE_mtloffice.newtrax.com,host,67.218.223.154,MTL Office Newtrax customer portal,,
+EQ_Inside_CA11VR03P_10.11.17.89,host,10.11.17.89,vRealize Server,,
+OUTSIDE_apps.bluesurge.com,fqdnv4,apps.bluesurge.com,Outside Bluesurge application,,
+EQ_Inside_CA11VR04P_10.11.17.90,host,10.11.17.90,vRealize Server,,
+EQ_Inside_CA11VR05P_10.11.217.139,host,10.11.217.139,vRealize Server,,
+OUTSIDE_vrbc-services.vmware.com,fqdnv4,vrbc-services.vmware.com,Change 11090 vrbc-services.vmware.com,,
+EQ_INSIDE_10.11.17.47,host,10.11.17.47,Inside CA11AP34P,EQ_INSIDE_ExchangeOnline-Group,EQ Inside Exchange online prism group
+EQ_INSIDE_10.11.18.110,host,10.11.18.110,Inside CA11AP34D ,EQ_INSIDE_ExchangeOnline-Group,EQ Inside Exchange online prism group
+EQ_INSIDE_10.11.18.153,host,10.11.18.153,Inside CA11AP34Q,EQ_INSIDE_ExchangeOnline-Group,EQ Inside Exchange online prism group
+OUTSIDE_outlook.office365.com,fqdnv4,outlook.office365.com,RFC 11260 exchange online IMAP 1,OUTSIDE_office365-Group,RFC 11260 exchange online IMAP
+OUTSIDE_smtp.office365.com,fqdnv4,smtp.office365.com,RFC 11260 exchange online IMAP 2,OUTSIDE_office365-Group,RFC 11260 exchange online IMAP
+Outside_SFB_TEAMS_1,network,13.107.64.0/18,Microsoft Teams and Skype For Business Online,Outside_MSFT_TEAMS_SFBO-Group,Microsoft Teams and Skype for Business Online
+EQ_INSIDE_pcsk6999.cameco.com,fqdnv4,pcsk6999.cameco.com,Inside workstation for google cloud SSH access,EQ_INSIDE_JBS-Group,EQ Inside JBS Group
+EQ_INSIDE_pcsk8368.cameco.com,fqdnv4,pcsk8368.cameco.com,Inside workstation for google cloud SSH access,EQ_INSIDE_JBS-Group,EQ Inside JBS Group
+EQ_INSIDE_SPRSK7116.cameco.com,fqdnv4,SPRSK7116.cameco.com,Inside workstation for google cloud SSH access,EQ_INSIDE_JBS-Group,EQ Inside JBS Group
+EQ_INSIDE_SPRSK7127.cameco.com,fqdnv4,SPRSK7127.cameco.com,Inside workstation for google cloud SSH access,EQ_INSIDE_JBS-Group,EQ Inside JBS Group
+OUTSIDE_SFB_TEAMS_2,network,52.112.0.0/14,Rule for Microsoft Teams and Skype for Business Online,Outside_MSFT_TEAMS_SFBO-Group,Microsoft Teams and Skype for Business Online
+OUTSIDE_SFB_TEAMS_3,network,52.120.0.0/14,Skype for Business Online and Microsoft Teams UDP IPS,Outside_MSFT_TEAMS_SFBO-Group,Microsoft Teams and Skype for Business Online
+OUTSIDE_35.203.91.134,host,35.203.91.134,Outside  JBS Server in Google Cloud ,,
+EQ_INSIDE_CA11AP29P_10.11.17.138,host,10.11.17.138,uag-int.cameco.com unified access gateway (backend) internal,,
+EQ_INSIDE_CA11AP57P_10.11.17.77,host,10.11.17.77,CTASK0012344: New UAG Server,,
+OUTSIDE_VMIdentityServer,fqdnv4,kdc.vmwareidentity.ca,kdc.vmwareidentity.ca,,
+OUTSIDE_XMReality_52.213.7.142,host,52.213.7.142,Outside ice-eu-1.xmreality.com,OUTSIDE_XMReality-Group,Outside XMReality Group
+OUTSIDE_XMReality_34.252.175.31,host,34.252.175.31,Outside ice-eu-2.xmreality.com,OUTSIDE_XMReality-Group,Outside XMReality Group
+EQ_Inside_CA11MX10P-2_10.11.17.91,host,Inside exchange 2016 server,Inside exchange 2016 server 1,EQ_Inside_Exchange_2016_Servers-Group,Inside exchange 2016 servers
+EQ_Inside_CA11MX11P-2_10.11.17.92,host,Inside exchange 2016 server,Inside exchange 2016 server 2,EQ_Inside_Exchange_2016_Servers-Group,Inside exchange 2016 servers
+EQ_Inside_CA11MX12P-2_10.11.17.93,host,Inside exchange 2016 server,Inside exchange 2016 server 3,EQ_Inside_Exchange_2016_Servers-Group,Inside exchange 2016 servers
+EQ_Inside_CA11MX13P-2_10.11.17.94,host,Inside exchange 2016 server,Inside exchange 2016 server 4,EQ_Inside_Exchange_2016_Servers-Group,Inside exchange 2016 servers
+OUTSIDE_XMR_Conference_63.32.218.224,host,63.32.218.224,Outside XMR_Conference Server,,
+OUTSIDE_Mail_Protection_40.92.0.1-40.93.255.254,host,40.92.0.1-40.93.255.254,Outside_Outlook_Mail_protection,OUTSIDE_Outlook_Mail_protection-Group,Outlook Mail Protection Group
+OUTSIDE_Mail_Protection_40.107.0.0,host,40.107.0.0/16,Outside_Outlook_Mail_protection,OUTSIDE_Outlook_Mail_protection-Group,Outlook Mail Protection Group
+OUTSIDE_Mail_Protection_52.100.0.1-52.103.255.254,host,52.100.0.1-52.103.255.254,Outside_Outlook_Mail_protection,OUTSIDE_Outlook_Mail_protection-Group,Outlook Mail Protection Group
+OUTSIDE_Mail_Protection_104.47.0.1-104.47.127.254,host,104.47.0.1-104.47.127.254,Outside_Outlook_Mail_protection,OUTSIDE_Outlook_Mail_protection-Group,Outlook Mail Protection Group
+EQ_INSIDE_SFTP_10.11.17.116,host,10.11.17.116,Inside SFTP Server,,
+OUTSIDE_CDMSFTP_COM,fqdnv4,cdmsftp.certent.com,Outside cdmsftp.certent.com,,

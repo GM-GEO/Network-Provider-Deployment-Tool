@@ -46,7 +46,7 @@ class AccessPolicyObject:
                               filePolicyObjects, urlCategoryObjects,
                               urlObjects, groupObjects, applicationObjects, ruleCategory):
 
-        accessRuleURL = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.accessPolicyLocation, "005056B6-DCA2-0ed3-0000-017179871248") + '/accessrules'
+        accessRuleURL = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.accessPolicyLocation, "005056B6-DCA2-0ed3-0000-171798718398") + '/accessrules'
         autoNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/autonatrules'
         manualNATRuleUrl = buildUrlForResourceWithId(provider.fmcIP, provider.domainLocation, provider.domainId, provider.natPolicyLocation, '005056B6-DCA2-0ed3-0000-004294974477') + '/manualnatrules'
 
@@ -109,7 +109,7 @@ class AccessPolicyObject:
         print("Acesspolicy nws: ", self.networks)
 
         for network in self.networks:
-            print("Comparing values: ", csvRow['sourceNetworks'], network[0])
+            # print("Comparing values: ", csvRow['sourceNetworks'], network[0])
             if network[0] == csvRow['sourceNetworks']:
                 print("In networks 1")
                 sourceNetwork = {}

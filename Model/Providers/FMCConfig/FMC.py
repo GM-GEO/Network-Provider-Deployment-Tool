@@ -1,6 +1,6 @@
 import requests
 from requests.auth import HTTPBasicAuth
-from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject, TCP, UDP
+from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject, TCP, UDP, Range
 from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
 from Model.Providers.Provider import Provider, buildUrlForResource, buildUrlForResourceWithId
 from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRisk, ApplicationType, FilePolicy, SecurityZones, URL, URLCategory
@@ -39,6 +39,7 @@ class FMC(Provider):
         self.portObjectList = []
         self.tcpObjectList = []
         self.udpObjectList = []
+        self.rangeObjectList = []
 
         self.supportedObjectList = ["host", "network", "url", "fqdn"]
 
@@ -54,6 +55,7 @@ class FMC(Provider):
         self.applicationLocation = "/object/applications"
         self.hostLocation = "/object/hosts"
         self.fqdnLocation = "/object/fqdns"
+        self.rangeLocation = "/object/ranges"
 
         self.filePolicyLocation = "/policy/filepolicies"
         self.accessPolicyLocation = "/policy/accesspolicies"
@@ -63,6 +65,7 @@ class FMC(Provider):
 
 
         self.allPortObjectList = self.__getAllPortObjects()
+        self.allRangeObjects = self.__getAllRanges()
         self.securityZoneObjectList = self.__getSecurityZones()
         self.filePolicyObjectList = self.__getFilePolicies()
         self.urlCategoryObjectList = self.__getURLCategories()
@@ -190,6 +193,10 @@ class FMC(Provider):
         fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
         self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
+    def __addRange(self, name, value, description='', group=''):
+        rangeObj = Range.RangeObject.FMCRange(self, name, value, description, group)
+        self.logger.info("Range added. {Name: " + name + ", Value: " + value + "}")
+        return self.rangeObjectList.append(rangeObj)
 
     def __addTCP(self, name, value, description='', group=''):
 
@@ -483,6 +490,9 @@ class FMC(Provider):
         elif type == 'fqdn':
             self.__addFQDN(name, value, description, group)
 
+        elif type == 'range':
+            self.__addRange(name, value, description, group)
+
         elif type == 'TCP':
             self.__addTCP(name, value, description, group)
 
@@ -508,6 +518,8 @@ class FMC(Provider):
                 return self.URLObjectList
             case "fqdn":
                 return self.FQDNObjectList
+            case "range":
+                return self.rangeObjectList
             case "TCP":
                 return self.tcpObjectList
             case "UDP":
@@ -760,7 +772,7 @@ class FMC(Provider):
                                         self.allFQDNObjects.append([fqdn.getName(), fqdn.getID(
                                         ), fqdn.getValue(), fqdn.getType(), fqdn.getDescription()])
                                 else:
-                                    print("Condition 1.2.2: Skipped this host.")
+                                    print("Condition 1.2.2: Skipped this fqdn.")
 
                     print(flag_fqdn)
                     if flag_fqdn == True:
@@ -768,6 +780,43 @@ class FMC(Provider):
                         result = fqdn.createFQDN(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allFQDNObjects.append([fqdn.getName(), fqdn.getID(), fqdn.getValue(), fqdn.getType(), fqdn.getDescription()])
+                        print(result)
+
+            case "range":
+
+                for range in self.rangeObjectList:
+                    flag_range = True
+                    for i in self.allRangeObjects:
+
+                        if i[0] == range.getName():
+                            flag_range = False
+                            if ((i[0] == range.getName()) and (i[2] == range.getValue())):
+                                print(
+                                    "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+                                flag_range = False
+                            elif ((i[0] == range.getName()) and (i[2] != range.getValue())):
+                                print(i[0], i[2],
+                                      "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+                                ans = str(input())
+                                if ans == 'Y':
+                                    print("Condition 1.2.1")
+                                    result = self.deleteRange(i[1])
+                                    if int(result) <= 299 and int(result) >= 200:
+                                        self.allRangeObjects.remove(i)
+                                    result = range.createRange(self.authHeader)
+                                    if int(result) <= 299 and int(result) >= 200:
+                                        self.allRangeObjects.append([range.getName(), range.getID(
+                                        ), range.getValue(), range.getType(), range.getDescription()])
+                                else:
+                                    print("Condition 1.2.2: Skipped this range.")
+
+                    print(flag_range)
+                    if flag_range == True:
+                        print("Condition 2", range.getName())
+                        result = range.createRange(self.authHeader)
+                        if int(result) <= 299 and int(result) >= 200:
+                            self.allRangeObjects.append(
+                                [range.getName(), range.getID(), range.getValue(), range.getType(), range.getDescription()])
                         print(result)
 
             case _:
@@ -831,10 +880,10 @@ class FMC(Provider):
                 headers=self.authHeader,
                 verify=False
             )
-            print("Before: ", port.content)
+            # print("Before: ", port.content)
 
             port = port.json()
-            print("After: ", port)
+            # print("After: ", port)
             # print("Main port: ", port)
             # print(port['name'], port['port'])
 
@@ -974,8 +1023,8 @@ class FMC(Provider):
 
             network = network.json()
 
-            if network and network["name"]:
-                self.logger.info("Network retrieved. {Name: " + network['name'] + ", Value: " + network['value'] + "}")
+            # if network and network["name"]:
+            #     self.logger.info("Network retrieved. {Name: " + network['name'] + ", Value: " + network['value'] + "}")
 
             returnList.append([network['name'], network['id'],
                                network['value'], network['type'], network['description']])
@@ -1082,6 +1131,38 @@ class FMC(Provider):
 
                 fqdn = fqdn.json()
                 returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
+
+        return returnList
+
+    def __getAllRanges(self):
+        url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.rangeLocation)
+
+        range = requests.get(
+            url=url,
+            headers=self.authHeader,
+            verify=False
+        )
+
+        returnList = []
+        print("Range all response: ", range.json())
+        if 'items' in range.json().keys():
+            ranges = range.json()['items']
+
+            for cat in ranges:
+                del cat['links']
+
+                newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.rangeLocation,
+                                                   cat['id'])
+
+                range = requests.get(
+                    url=newURL,
+                    headers=self.authHeader,
+                    verify=False
+                )
+
+                range = range.json()
+                returnList.append([range['name'], range['id'], range['value'], range['type'], range['description']])
+        print("Ranges list: ", returnList)
 
         return returnList
 
@@ -1232,6 +1313,17 @@ class FMC(Provider):
         )
 
         return networks.status_code
+
+    def deleteRange(self, id):
+        url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.rangeLocation, id)
+        range = requests.delete(
+            url=url,
+            headers=self.authHeader,
+            verify=False
+        )
+        print(range.json())
+
+        return range.status_code
     def mergeAllNetworkTypes(self):
         """
         Makes a collective list of all the Network types.
@@ -1254,7 +1346,7 @@ class FMC(Provider):
         return networks
     def mergeURLwithURLGroups(self):
         urls = self.allUrlObjectList
-        print("Before merging: ", urls)
+        # print("Before merging: ", urls)
 
         for i in self.allGroupsList:
             print("type url", i[3])

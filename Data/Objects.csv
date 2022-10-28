@@ -7,10 +7,11 @@ Win_Update_URL_2,url,http://*.windowsupdat.microsoft.com,Windows update URL 2,WI
 LAB_POD6_NW,network,10.255.27.0/24,LAB Pod 5 Network,POD_NETWORKS
 Outside_DNS_SRVR_1,host,208.67.222.221,Umbrella DNS Server 1,LAB_SERVERS
 Outside_DNS_SRVR_2,host,208.67.220.220,Umbrella DNS Server 2,LAB_SERVERS
-LAB_DMZ_,network,10.255.29.2/24,Lab DMZ,LAB_NETWORKS
-LAB_WIFI_,network,10.255.29.1/24,Wi-Fi Lab,LAB_NETWORKS
+LAB_DMZ_,network,10.255.29.0/24,Lab DMZ,LAB_NETWORKS
+LAB_WIFI_,network,10.255.28.0/24,Wi-Fi Lab,LAB_NETWORKS
 Win_Update_URLs,url,http://*.windowsupdate.microsoft.com,Windows update URL 2,WINDOWS_UPDATEs
 LAB_WIFI_FQDN,fqdn,www.fqdntest.ca,Wi-Fi Lab,LAB_NETWORKS
+LAB_WIFI_Range,range,10.4.30.40-10.4.30.49,Wi-Fi Lab,LAB_NETWORKS
 LAB_WIFI_FQDN_test,fqdn,www.fqdntest.com,Wi-Fi Lab,LAB_NETWORKS
 LAB_WIFI_FQDN_testingssssssssing,fqdn,www.fqdntest.com,Wi-Fi Lab,LAB_NETWORKS
 LAB_WIFI_FQDN_ttttesttt,fqdn,www.fqdntest.com,Wi-Fi Lab,LAB_NETWORKSSSing
