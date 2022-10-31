@@ -1172,30 +1172,34 @@ class FMC(Provider):
         )
 
         returnList = []
-        # print("FQDN all response: ", fqdn.json())
-        if 'items' in fqdn.json().keys():
-            fqdns = fqdn.json()['items']
+        temp = ''
+        if fqdn.content:
+            # print("FQDN all response: ", fqdn.json())
+            if 'items' in fqdn.json().keys():
+                fqdns = fqdn.json()['items']
 
 
-            for cat in fqdns:
-                del cat['links']
-                temp = ''
+                for cat in fqdns:
+                    del cat['links']
 
-                newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
-                                                   cat['id'])
 
-                fqdn = requests.get(
-                    url=newURL,
-                    headers=self.authHeader,
-                    verify=False
-                )
-                if fqdn.content:
+                    newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
+                                                       cat['id'])
 
-                    fqdn = fqdn.json()
-                    returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
-                    temp = fqdn['name']
-                else:
-                    print("The FQDN after", temp, "was not retrieved.")
+                    fqdn = requests.get(
+                        url=newURL,
+                        headers=self.authHeader,
+                        verify=False
+                    )
+                    if fqdn.content:
+
+                        fqdn = fqdn.json()
+                        returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
+                        temp = fqdn['name']
+                    else:
+                        print("The FQDN after", temp, "was not retrieved.")
+        else:
+            print("No FQDN objects were retrieved.")
 
         return returnList
 
