@@ -112,7 +112,6 @@ def main():
 
         for index, object in parsedObjectCSV.items():
             groupList = object['group'].split('/')
-            # print("Split list: ", groupList)
             labFMC.addObject('', object['type'],
                              object['name'],
                              object['value'],
