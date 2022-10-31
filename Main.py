@@ -82,6 +82,7 @@ def main():
 
 
 
+
         Logger_AddBreakLine()
 
     elif serviceProvider == ProviderEnum.FMC.value:
@@ -109,54 +110,54 @@ def main():
         Logger_AddBreakLine()
 
 
-        for index, object in parsedObjectCSV.items():
-            groupList = object['group'].split('/')
-            # print("Split list: ", groupList)
-            labFMC.addObject('', object['type'],
-                             object['name'],
-                             object['value'],
-                             group=groupList)
-
-        print("Hosts: ", labFMC.getObjectList("host"))
-        log.info("retrieved Host list.")
-
-        labFMC.applyObjectList("host")
-        log.info("applied changes to Hosts.")
-
-        print("Networks: ", labFMC.getObjectList("network"))
-        log.info("retrieved Network list.")
-
-        labFMC.applyObjectList("network")
-        log.info("applied Network results.")
-
-        print("URLs: ", labFMC.getObjectList("url"))
-        log.info("retrieved URL list.")
-
-        labFMC.applyObjectList("url")
-        log.info("applied URL results.")
+        # for index, object in parsedObjectCSV.items():
+        #     groupList = object['group'].split('/')
+        #     # print("Split list: ", groupList)
+        #     labFMC.addObject('', object['type'],
+        #                      object['name'],
+        #                      object['value'],
+        #                      group=groupList)
         #
-        print("FQDN: ", labFMC.getObjectList("fqdn"))
-        log.info("retrieved FQDN list.")
-
-        labFMC.applyObjectList("fqdn")
-        log.info("applied FQDN results.")
+        # print("Hosts: ", labFMC.getObjectList("host"))
+        # log.info("retrieved Host list.")
+        #
+        # labFMC.applyObjectList("host")
+        # log.info("applied changes to Hosts.")
+        #
+        # print("Networks: ", labFMC.getObjectList("network"))
+        # log.info("retrieved Network list.")
+        #
+        # labFMC.applyObjectList("network")
+        # log.info("applied Network results.")
+        #
+        # print("URLs: ", labFMC.getObjectList("url"))
+        # log.info("retrieved URL list.")
+        #
+        # labFMC.applyObjectList("url")
+        # log.info("applied URL results.")
+        # #
+        # print("FQDN: ", labFMC.getObjectList("fqdn"))
+        # log.info("retrieved FQDN list.")
+        #
+        # labFMC.applyObjectList("fqdn")
+        # log.info("applied FQDN results.")
 
         # print("FQDN: ", labFMC.getObjectList("range"))
         # log.info("retrieved Range list.")
         #
         # labFMC.applyObjectList("range")
         # log.info("applied Range results.")
-        print("TCP: ", labFMC.getObjectList("TCP"))
-        labFMC.applyObjectList("TCP")
-
-        print("TCP: ", labFMC.getObjectList("UDP"))
-        labFMC.applyObjectList("UDP")
+        # print("TCP: ", labFMC.getObjectList("TCP"))
+        # labFMC.applyObjectList("TCP")
+        #
+        # print("TCP: ", labFMC.getObjectList("UDP"))
+        # labFMC.applyObjectList("UDP")
 
         print("URL membership: ", labFMC.createGroupMembershipLists('url'))
         print("Host membership: ", labFMC.createGroupMembershipLists('host'))
-        # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
-
-        print("...................................................................")
+        # # print("URL membership: ", labFMC.createGroupMembershipLists('url'))
+        #
+        # print("...................................................................")
         labFMC.createGroups('host')
         labFMC.createGroups('url')
 

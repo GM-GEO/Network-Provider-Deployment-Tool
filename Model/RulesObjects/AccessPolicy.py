@@ -24,10 +24,10 @@ class AccessPolicyObject:
 
 
         self.urlTest = urls
-        print("All URLs required: ", self.urlTest)
+        # print("All URLs required: ", self.urlTest)
 
 
-        print("NAT auto rule url: ", self.autoNATruleURL)
+        # print("NAT auto rule url: ", self.autoNATruleURL)
         self.securityZones = securityZoneObjects
         self.networks = networkObjects
         self.ports = portObjects
@@ -103,55 +103,62 @@ class AccessPolicyObject:
 
         return (sourceZone, destinationZone)
 
-    def __getNetworks(self, csvRow):
-        sourceNetwork = None
-        destinationNetwork = None
-        print("Acesspolicy nws: ", self.networks)
+    def __getNetworks(self, sourceNetworks, destinationNetworks, csvRow):
+        # sourceNetwork = None
+        # destinationNetwork = None
+        # print("Acesspolicy nws: ", self.networks)
+
+        csvSourceNetworks = []
+        csvDestinationNetworks = []
+
 
         for network in self.networks:
             # print("Comparing values: ", csvRow['sourceNetworks'], network[0])
-            if network[0] == csvRow['sourceNetworks']:
+            if network[0] in sourceNetworks:
                 print("In networks 1")
                 sourceNetwork = {}
                 sourceNetwork['name'] = network[0]
                 # sourceNetwork['id'] = network.getUUID()
                 sourceNetwork['id'] = network[1]
-                sourceNetwork['type'] = ObjectTypeEnum.NETWORK.value.capitalize()
+                sourceNetwork['type'] = network[3]
                 sourceNetwork['overridable'] = False
+                csvSourceNetworks.append(sourceNetwork)
                 print("Condition 1: ", sourceNetwork)
-            elif network[0] == csvRow['destinationNetworks']:
+            elif network[0] in destinationNetworks:
                 print("In networks 2")
 
                 destinationNetwork = {}
                 destinationNetwork['name'] = network[0]
                 # destinationNetwork['id'] = network.getUUID()
                 destinationNetwork['id'] = network[1]
-                destinationNetwork[
-                    'type'] = ObjectTypeEnum.NETWORK.value.capitalize()
+                destinationNetwork['type'] = network[3]
                 destinationNetwork['overridable'] = False
+                csvDestinationNetworks.append(destinationNetwork)
                 print("Condition 2: ", destinationNetwork)
 
-        if sourceNetwork == None or destinationNetwork == None:  #if the network was not found in the list of network objects
-            for group in self.groups:
-                if group[0] == csvRow['sourceNetworks']:
-                    print("In networks 3")
+        # if csvSourceNetworks == [] or csvDestinationNetworks == []:  #if the network was not found in the list of network objects
+        #     for group in self.groups:
+        #         if group[0] == csvRow['sourceNetworks']:
+        #             print("In networks 3")
+        #
+        #             sourceNetwork = {}
+        #             sourceNetwork['name'] = group[0]
+        #             sourceNetwork['id'] = group[1]
+        #             sourceNetwork['type'] = 'NetworkGroup'
+        #             print("Condition 3: ", sourceNetwork)
+        #
+        #         if group[0] == csvRow['destinationNetworks']:
+        #             print("In networks 4")
+        #
+        #             destinationNetwork = {}
+        #             destinationNetwork['name'] = group[0]
+        #             destinationNetwork['id'] = group[1]
+        #             destinationNetwork['type'] = 'NetworkGroup'
+        #             print("Condition 4: ", destinationNetwork)
+        print("Returned source networks list: ", csvSourceNetworks)
+        print("Returned destination networks: ", csvDestinationNetworks)
 
-                    sourceNetwork = {}
-                    sourceNetwork['name'] = group[0]
-                    sourceNetwork['id'] = group[1]
-                    sourceNetwork['type'] = 'NetworkGroup'
-                    print("Condition 3: ", sourceNetwork)
-
-                if group[0] == csvRow['destinationNetworks']:
-                    print("In networks 4")
-
-                    destinationNetwork = {}
-                    destinationNetwork['name'] = group[0]
-                    destinationNetwork['id'] = group[1]
-                    destinationNetwork['type'] = 'NetworkGroup'
-                    print("Condition 4: ", destinationNetwork)
-
-        return (sourceNetwork, destinationNetwork)
+        return (csvSourceNetworks, csvDestinationNetworks)
 
     def __getPNetworks(self, csvRow):
         sourceNetwork = None
@@ -309,9 +316,13 @@ class AccessPolicyObject:
         csvSourcePorts = csvRow['sourcePorts'].split('/')
         csvDestinationPorts = csvRow['destinationPorts'].split('/')
         csvUrlCategories = csvRow['urlCategories'].split('/')
+        csvSourceNetworks = csvRow['sourceNetworks'].split('/')
+        csvDestinationNetworks = csvRow['destinationNetworks'].split('/')
+        print("Source networks csv: ", csvSourceNetworks)
+        print("Destination networks csv: ", csvDestinationNetworks)
 
         securityZones = self.__getSecurityZones(csvRow)
-        networks = self.__getNetworks(csvRow)
+        networks = self.__getNetworks(csvSourceNetworks, csvDestinationNetworks, csvRow)
         ports = self.__getPorts(csvSourcePorts, csvDestinationPorts, csvRow)
         filePolicy = self.__getFilePolicies(csvRow)
         urlCategories = self.__getUrlCategories(csvUrlCategories, csvRow)
@@ -342,9 +353,9 @@ class AccessPolicyObject:
         postBody['logEnd'] = not postBody['logBegin']
         # postBody['metadata'] = {}
         # postBody['metadata']['section'] = 'DMZ_LAB'
-        postBody['sourceNetworks'] = {'objects': [networks[0]]}
+        postBody['sourceNetworks'] = {'objects': networks[0]}
         postBody['sourceZones'] = {"objects": [securityZones[0]]}
-        postBody['destinationNetworks'] = {'objects': [networks[1]]}
+        postBody['destinationNetworks'] = {'objects': networks[1]}
         postBody['destinationZones'] = {'objects': [securityZones[1]]}
         postBody['sourcePorts'] = {'objects': ports[0]}
         postBody['destinationPorts'] = {'objects': ports[1]}
@@ -452,12 +463,12 @@ class AccessPolicyObject:
 
         postBody = {}
         if ports[1] != []:
-            print("Empty port: ", ports[1])
+            # print("Empty port: ", ports[1])
             postBody["originalDestinationPort"] = ports[1][0]
         postBody['originalSource'] = networks[0]
 
         if ports[0] != []:
-            print("Empty port: ", ports[1])
+            # print("Empty port: ", ports[1])
             postBody['originalSourcePort'] = ports[0][0]
 
         postBody['translatedDestination'] = networks[1]

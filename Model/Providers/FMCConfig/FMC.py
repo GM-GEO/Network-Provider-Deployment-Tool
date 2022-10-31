@@ -77,7 +77,7 @@ class FMC(Provider):
         self.allUrlObjectList = self.__getAllUrls()
         self.allHostObjectList = self.__getAllHosts()
         self.allFQDNObjects = self.__getAllFQDNs()
-        self.allNetworkGroups = self.__getNetworkGroups()
+        # self.allNetworkGroups = self.__getNetworkGroups()
 
         return None
 
@@ -835,15 +835,18 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        securityZones = securityZones.json()['items']
-
         returnList = []
 
-        for zone in securityZones:
-            del zone['links']
-            returnList.append(SecurityZones.SecurityZoneObject(
-                zone['name'], zone['id']))
+        if securityZones.content:
+
+            securityZones = securityZones.json()['items']
+
+            for zone in securityZones:
+                del zone['links']
+                returnList.append(SecurityZones.SecurityZoneObject(
+                    zone['name'], zone['id']))
+        else:
+            print("Security zones were not retrieved.")
 
         return returnList
 
@@ -865,39 +868,51 @@ class FMC(Provider):
             params=queryParameters,
             verify=False
         )
-
-        ports = ports.json()['items']
-        print("Alllll ports: ", ports)
         returnList = []
+        if ports.content:
 
-        for cat in ports:
-            del cat['links']
+            ports = ports.json()['items']
+            print("Alllll ports: ", ports)
 
-            newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.portLocation, cat['id'])
+            temp = ''
 
-            port = requests.get(
-                url=newUrl,
-                headers=self.authHeader,
-                verify=False
-            )
-            # print("Before: ", port.content)
+            for cat in ports:
+                del cat['links']
 
-            port = port.json()
-            # print("After: ", port)
-            # print("Main port: ", port)
-            # print(port['name'], port['port'])
+                newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.portLocation, cat['id'])
+
+                port = requests.get(
+                    url=newUrl,
+                    headers=self.authHeader,
+                    verify=False
+                )
+                # print("Before: ", port.content)
+                # print(port.status_code, port.content)
+                if port.content:
+                    # print("After", port.status_code, port.content)
+
+                    port = port.json()
+                    # print("After: ", port)
+                    # print("Main port: ", port)
+                    # print(port['name'], port['port'])
 
 
-            # if port and port["name"]:
-            #     self.logger.info("Network retrieved. {Name: " + port['name'] + ", Value: " + port['port'] + "}")
-            if 'port' in port.keys():
-                returnList.append([port['name'], port['id'],
-                                   port['port'], port['protocol'], port['type'], port['description']])
-            else:
-                print("The port ", port['name'], " does not have a port value associated with it.")
+                    # if port and port["name"]:
+                    #     self.logger.info("Network retrieved. {Name: " + port['name'] + ", Value: " + port['port'] + "}")
+                    if 'port' in port.keys():
+                        returnList.append([port['name'], port['id'],
+                                           port['port'], port['protocol'], port['type'], port['description']])
+                        temp = port['name']
+                        # print([port['name'], port['id'], port['port'], port['protocol'], port['type'], port['description']])
+                    else:
+                        print("The port ", port['name'], " does not have a port value associated with it.")
+                else:
+                    print("The port after", temp, "was not retrieved.")
+        else:
+            print("No ports retrieved.")
 
 
-        print("All ports: ", returnList)
+        # print("All ports: ", returnList)
 
         return returnList
 
@@ -928,15 +943,19 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        filePolicies = filePolicies.json()['items']
         returnList = []
+        if filePolicies.content:
 
-        for fp in filePolicies:
-            del fp['links']
+            filePolicies = filePolicies.json()['items']
 
-            returnList.append(
-                FilePolicy.FilePolicyObject(fp['name'], fp['id']))
+
+            for fp in filePolicies:
+                del fp['links']
+
+                returnList.append(
+                    FilePolicy.FilePolicyObject(fp['name'], fp['id']))
+        else:
+            print("No file policies were retrieved.")
 
         return returnList
 
@@ -953,16 +972,20 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        urlCategories = urlCategories.json()['items']
         returnList = []
 
-        for cat in urlCategories:
-            del cat['links']
+        if urlCategories.content:
 
-            returnList.append(
-                URLCategory.URLCategoryObject(cat['name'], cat['id']))
-            # print("Name: ", cat['name'], " Id: ", cat['id'])
+            urlCategories = urlCategories.json()['items']
+
+            for cat in urlCategories:
+                del cat['links']
+
+                returnList.append(
+                    URLCategory.URLCategoryObject(cat['name'], cat['id']))
+                # print("Name: ", cat['name'], " Id: ", cat['id'])
+        else:
+            print("UrlCategories were not retrieved.")
 
         return returnList
 
@@ -979,16 +1002,20 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        applications = applications.json()['items']
         returnList = []
 
-        for cat in applications:
-            del cat['links']
+        if applications.content:
 
-            returnList.append(
-                Application.ApplicationObject(cat['name'], cat['id']))
-            # print("A Name: ", cat['name'], " A Id: ", cat['id'])
+            applications = applications.json()['items']
+
+            for cat in applications:
+                del cat['links']
+
+                returnList.append(
+                    Application.ApplicationObject(cat['name'], cat['id']))
+                # print("A Name: ", cat['name'], " A Id: ", cat['id'])
+        else:
+            print("No applications were retrieved.")
 
         return returnList
 
@@ -1005,29 +1032,40 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        networks = networks.json()['items']
         returnList = []
+        temp = ''
 
-        for cat in networks:
-            del cat['links']
+        if networks.content:
 
-            newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation,
-                                               cat['id'])
+            networks = networks.json()['items']
 
-            network = requests.get(
-                url=newUrl,
-                headers=self.authHeader,
-                verify=False
-            )
+            for cat in networks:
+                del cat['links']
 
-            network = network.json()
+                newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation,
+                                                   cat['id'])
 
-            # if network and network["name"]:
-            #     self.logger.info("Network retrieved. {Name: " + network['name'] + ", Value: " + network['value'] + "}")
 
-            returnList.append([network['name'], network['id'],
-                               network['value'], network['type'], network['description']])
+                network = requests.get(
+                    url=newUrl,
+                    headers=self.authHeader,
+                    verify=False
+                )
+                if network.content:
+
+                    network = network.json()
+
+                    # if network and network["name"]:
+                    #     self.logger.info("Network retrieved. {Name: " + network['name'] + ", Value: " + network['value'] + "}")
+                    if 'name' in network.keys():
+
+                        returnList.append([network['name'], network['id'],
+                                           network['value'], network['type'], network['description']])
+                        temp = network['name']
+                else:
+                    print("The object after", temp, "was not retrieved.")
+        else:
+            print("No network objects were retrieved.")
 
         return returnList
 
@@ -1112,13 +1150,14 @@ class FMC(Provider):
         )
 
         returnList = []
-        print("FQDN all response: ", fqdn.json())
+        # print("FQDN all response: ", fqdn.json())
         if 'items' in fqdn.json().keys():
             fqdns = fqdn.json()['items']
 
 
             for cat in fqdns:
                 del cat['links']
+                temp = ''
 
                 newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
                                                    cat['id'])
@@ -1128,9 +1167,13 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+                if fqdn.content:
 
-                fqdn = fqdn.json()
-                returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
+                    fqdn = fqdn.json()
+                    returnList.append([fqdn['name'], fqdn['id'], fqdn['value'], fqdn['type'], fqdn['description']])
+                    temp = fqdn['name']
+                else:
+                    print("The FQDN after", temp, "was not retrieved.")
 
         return returnList
 
@@ -1144,25 +1187,26 @@ class FMC(Provider):
         )
 
         returnList = []
-        print("Range all response: ", range.json())
-        if 'items' in range.json().keys():
-            ranges = range.json()['items']
+        # print("Range all response: ", range.json())
+        if range and range.json():
+            if 'items' in range.json().keys():
+                ranges = range.json()['items']
 
-            for cat in ranges:
-                del cat['links']
+                for cat in ranges:
+                    del cat['links']
 
-                newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.rangeLocation,
-                                                   cat['id'])
+                    newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.rangeLocation,
+                                                       cat['id'])
 
-                range = requests.get(
-                    url=newURL,
-                    headers=self.authHeader,
-                    verify=False
-                )
+                    range = requests.get(
+                        url=newURL,
+                        headers=self.authHeader,
+                        verify=False
+                    )
 
-                range = range.json()
-                returnList.append([range['name'], range['id'], range['value'], range['type'], range['description']])
-        print("Ranges list: ", returnList)
+                    range = range.json()
+                    returnList.append([range['name'], range['id'], range['value'], range['type'], range['description']])
+        # print("Ranges list: ", returnList)
 
         return returnList
 
@@ -1177,7 +1221,7 @@ class FMC(Provider):
         )
 
         nwGroups = nwGroups.json()
-        print("NW groups: ", nwGroups)
+        # print("NW groups: ", nwGroups)
 
     def __getAllGroups(self):
         """
@@ -1193,7 +1237,7 @@ class FMC(Provider):
         )
 
         nwGroup = nwGroup.json()['items']
-        print("All nw groups1: ", nwGroup)
+        # print("All nw groups1: ", nwGroup)
         returnList = []
 
         for cat in nwGroup:
@@ -1207,7 +1251,7 @@ class FMC(Provider):
                 headers=self.authHeader,
                 verify=False
             )
-            print("One nw: ", nw.json())
+            # print("One nw: ", nw.json())
             if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
                 returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', nw.json()['literals']])
             if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
@@ -1250,7 +1294,7 @@ class FMC(Provider):
                     [cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
             if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
                 returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
-        print("Create group returnList: ", returnList)
+        # print("Create group returnList: ", returnList)
 
         return returnList
 
@@ -1339,7 +1383,7 @@ class FMC(Provider):
             networks.append(i)
         print("All groups: ", self.allGroupsList)
         for i in self.allGroupsList:
-            print("type", i[3])
+            # print("type", i[3])
             if i[3] == 'NetworkGroup':
                 networks.append([i[0], i[1], i[4], i[3], ''])
 
@@ -1361,7 +1405,8 @@ class FMC(Provider):
         """
         allNetworks = self.mergeAllNetworkTypes()
         allUrls = self.mergeURLwithURLGroups()
-        print("Merged urlS: ", allUrls)
+        # print("Merged networks: ", allNetworks)
+        # print("Merged urlS: ", allUrls)
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
                                                        self.allPortObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, allUrls, self.allGroupsList, self.applicationObjectList, ruleCategory)
