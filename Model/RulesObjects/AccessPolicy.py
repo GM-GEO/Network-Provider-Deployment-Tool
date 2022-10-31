@@ -124,7 +124,7 @@ class AccessPolicyObject:
                 sourceNetwork['overridable'] = False
                 csvSourceNetworks.append(sourceNetwork)
                 print("Condition 1: ", sourceNetwork)
-            elif network[0] in destinationNetworks:
+            if network[0] in destinationNetworks:
                 print("In networks 2")
 
                 destinationNetwork = {}
@@ -387,7 +387,10 @@ class AccessPolicyObject:
             logger.info("Policy creation successful. {Policy Id:" +
                         self.objectUUID + "}")
 
-        print("Response rule creation: ", response.json())
+        print(response.content)
+        if response.content:
+
+            print("Response rule creation: ", response.json())
 
         return response.status_code
 

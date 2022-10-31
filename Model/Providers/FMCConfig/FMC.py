@@ -1033,9 +1033,10 @@ class FMC(Provider):
             verify=False
         )
         returnList = []
-        temp = ''
+
 
         if networks.content:
+            temp = ''
 
             networks = networks.json()['items']
 
@@ -1081,25 +1082,35 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        urls = networks.json()['items']
         returnList = []
 
-        for cat in urls:
-            del cat['links']
+        if networks.content:
 
-            newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation,
-                                               cat['id'])
+            urls = networks.json()['items']
+            temp = ''
 
-            network = requests.get(
-                url=newURL,
-                headers=self.authHeader,
-                verify=False
-            )
 
-            network = network.json()
-            returnList.append(
-                [network['name'], network['id'], network['url'], network['type'], network['description']])
+            for cat in urls:
+                del cat['links']
+
+                newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation,
+                                                   cat['id'])
+
+                network = requests.get(
+                    url=newURL,
+                    headers=self.authHeader,
+                    verify=False
+                )
+                if network.content:
+
+                    network = network.json()
+                    returnList.append(
+                        [network['name'], network['id'], network['url'], network['type'], network['description']])
+                    temp = network['name']
+                else:
+                    print("The url after", temp, "was not retrieved.")
+        else:
+            print("URLs were not retrieved.")
         return returnList
 
     def __getAllHosts(self):
@@ -1114,25 +1125,36 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        hosts = hosts.json()['items']
         returnList = []
 
-        for cat in hosts:
-            del cat['links']
+        if hosts.content:
+            temp = ''
 
-            newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation,
-                                               cat['id'])
+            hosts = hosts.json()['items']
 
-            host = requests.get(
-                url=newURL,
-                headers=self.authHeader,
-                verify=False
-            )
+            for cat in hosts:
+                del cat['links']
 
-            host = host.json()
-            returnList.append(
-                [host['name'], host['id'], host['value'], host['type'], host['description']])
+                newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation,
+                                                   cat['id'])
+
+                host = requests.get(
+                    url=newURL,
+                    headers=self.authHeader,
+                    verify=False
+                )
+
+                if host.content:
+
+                    host = host.json()
+                    returnList.append(
+                        [host['name'], host['id'], host['value'], host['type'], host['description']])
+                    temp = host['name']
+                else:
+                    print("Host object after", temp, "was not retrieved.")
+
+        else:
+            print("No host objects were retrieved.")
 
         return returnList
 
@@ -1235,31 +1257,41 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
-
-        nwGroup = nwGroup.json()['items']
-        # print("All nw groups1: ", nwGroup)
         returnList = []
+        temp = ''
 
-        for cat in nwGroup:
-            del cat['links']
+        if nwGroup.content:
 
-            newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
-                                               self.networkGroupLocation, cat['id'])
+            nwGroup = nwGroup.json()['items']
+            # print("All nw groups1: ", nwGroup)
 
-            nw = requests.get(
-                url=newUrl,
-                headers=self.authHeader,
-                verify=False
-            )
-            # print("One nw: ", nw.json())
-            if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
-                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', nw.json()['literals']])
-            if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
-                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
-            if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
-                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
-            if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
-                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
+
+            for cat in nwGroup:
+                del cat['links']
+
+                newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
+                                                   self.networkGroupLocation, cat['id'])
+
+                nw = requests.get(
+                    url=newUrl,
+                    headers=self.authHeader,
+                    verify=False
+                )
+                if nw.content:
+                    temp = cat['name']
+                # print("One nw: ", nw.json())
+                    if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
+                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', nw.json()['literals']])
+                    if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
+                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
+                    if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
+                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
+                    if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
+                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
+                else:
+                    print("The network group after", temp, "was not retrieved.")
+        else:
+            print("No network group was retrieved.")
 
         url2 = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlGroupLocation)
 
@@ -1268,33 +1300,42 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if nwGroup.content:
+            temp = ''
 
-        urlGroup = nwGroup.json()['items']
-        # returnList = []
+            urlGroup = nwGroup.json()['items']
+            # returnList = []
 
-        for cat in urlGroup:
-            del cat['links']
+            for cat in urlGroup:
+                del cat['links']
 
-            newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
-                                               self.urlGroupLocation, cat['id'])
+                newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
+                                                   self.urlGroupLocation, cat['id'])
 
-            nw = requests.get(
-                url=newUrl,
-                headers=self.authHeader,
-                verify=False
-            )
-            if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
-                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals',
-                                   nw.json()['literals']])
-            if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
-                returnList.append(
-                    [cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
-            if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
-                returnList.append(
-                    [cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
-            if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
-                returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
-        # print("Create group returnList: ", returnList)
+                nw = requests.get(
+                    url=newUrl,
+                    headers=self.authHeader,
+                    verify=False
+                )
+
+                if nw.content:
+                    temp = cat['name']
+                    if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
+                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals',
+                                           nw.json()['literals']])
+                    if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
+                        returnList.append(
+                            [cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
+                    if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
+                        returnList.append(
+                            [cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
+                    if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
+                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
+                else:
+                    print("The url group after", temp, "was not retrieved.")
+        else:
+            print("No URL groups were retrieved.")
+        print("Create group returnList: ", returnList)
 
         return returnList
 
@@ -1405,7 +1446,7 @@ class FMC(Provider):
         """
         allNetworks = self.mergeAllNetworkTypes()
         allUrls = self.mergeURLwithURLGroups()
-        # print("Merged networks: ", allNetworks)
+        print("Merged networks: ", allNetworks)
         # print("Merged urlS: ", allUrls)
 
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
