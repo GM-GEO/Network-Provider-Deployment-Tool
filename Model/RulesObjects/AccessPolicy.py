@@ -1,5 +1,6 @@
 import csv
 import requests
+import time
 from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
 from Model.Providers.FMCConfig import FMC
 from Model.Providers.PaloAltoConfig import PaloAlto
@@ -377,10 +378,13 @@ class AccessPolicyObject:
         print("Rule creation postBody: ", postBody)
 
         response = requests.post(url=self.urlTest[0],
-                                 headers=authHeaders,
+                                 headers=apiToken,
                                  params=queryParameters,
                                  json=postBody,
                                  verify=False)
+
+        if response.status_code == 429:
+            time.sleep(int(response.headers["Retry-After"]))
 
         if response.status_code <= 299 and response.status_code >= 200:
             self.objectUUID = response.json()['id']

@@ -474,7 +474,7 @@ class FMC(Provider):
 
                 if flag == True:
                     result = objGroup.createGroup(self.authHeader)
-                    print("Making group: ", result)
+                    # print("Making group: ", result)
                     if int(result) < 299:
                         temp.append([objGroup.getName(), objGroup.getUUID(), 'objects', objGroup.getGroupMembership()+'Group', groupDict[group], 'literals', []])
                         print("New group: ", temp)
@@ -1205,6 +1205,8 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if securityZones.status_code == 429:
+            time.sleep(int(securityZones.headers["Retry-After"]))
         returnList = []
 
         if securityZones.content:
@@ -1238,6 +1240,10 @@ class FMC(Provider):
             params=queryParameters,
             verify=False
         )
+
+        if ports.status_code == 429:
+            time.sleep(int(ports.headers["Retry-After"]))
+
         returnList = []
         if ports.content:
             print(ports.content)
@@ -1257,6 +1263,8 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+                if port.status_code == 429:
+                    time.sleep(int(port.headers["Retry-After"]))
 
                 if port.content:
                     
@@ -1311,6 +1319,9 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+
+        if filePolicies.status_code == 429:
+            time.sleep(int(filePolicies.headers["Retry-After"]))
         returnList = []
         if filePolicies.content:
 
@@ -1340,6 +1351,9 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+
+        if urlCategories.status_code == 429:
+            time.sleep(int(urlCategories.headers["Retry-After"]))
         returnList = []
 
         if urlCategories.content:
@@ -1370,6 +1384,9 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if applications.status_code == 429:
+            time.sleep(int(applications.headers["Retry-After"]))
+
         returnList = []
 
         if applications.content:
@@ -1400,6 +1417,8 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if networks.status_code == 429:
+            time.sleep(int(networks.headers["Retry-After"]))
         returnList = []
 
 
@@ -1420,6 +1439,10 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+
+                if network.status_code == 429:
+                    time.sleep(int(network.headers["Retry-After"]))
+
                 if network.content:
 
                     network = network.json()
@@ -1450,6 +1473,9 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if networks.status_code == 429:
+            time.sleep(int(networks.headers["Retry-After"]))
+
         returnList = []
 
         if networks.content:
@@ -1469,6 +1495,9 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+                if network.status_code == 429:
+                    time.sleep(int(network.headers["Retry-After"]))
+
                 if network.content:
 
                     network = network.json()
@@ -1493,6 +1522,8 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if hosts.status_code == 429:
+            time.sleep(int(hosts.headers["Retry-After"]))
         returnList = []
 
         if hosts.content:
@@ -1511,6 +1542,8 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+                if host.status_code == 429:
+                    time.sleep(int(host.headers["Retry-After"]))
 
                 if host.content:
 
@@ -1539,6 +1572,9 @@ class FMC(Provider):
             verify=False
         )
 
+        if fqdn.status_code == 429:
+            time.sleep(int(fqdn.headers["Retry-After"]))
+
         returnList = []
         temp = ''
         if fqdn.content:
@@ -1559,6 +1595,10 @@ class FMC(Provider):
                         headers=self.authHeader,
                         verify=False
                     )
+
+                    if fqdn.status_code == 429:
+                        time.sleep(int(fqdn.headers["Retry-After"]))
+
                     if fqdn.content:
 
                         fqdn = fqdn.json()
@@ -1580,6 +1620,9 @@ class FMC(Provider):
             verify=False
         )
 
+        if range.status_code == 429:
+            time.sleep(int(range.headers["Retry-After"]))
+
         returnList = []
         # print("Range all response: ", range.json())
         if range and range.json():
@@ -1597,6 +1640,9 @@ class FMC(Provider):
                         headers=self.authHeader,
                         verify=False
                     )
+
+                    if range.status_code == 429:
+                        time.sleep(int(range.headers["Retry-After"]))
 
                     range = range.json()
                     returnList.append([range['name'], range['id'], range['value'], range['type'], range['description']])
@@ -1629,6 +1675,8 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if nwGroup.status_code == 429:
+            time.sleep(int(nwGroup.headers["Retry-After"]))
         returnList = []
         temp = ''
 
@@ -1649,6 +1697,8 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+                if nw.status_code == 429:
+                    time.sleep(int(nw.headers["Retry-After"]))
                 if nw.content:
                     temp = cat['name']
                 # print("One nw: ", nw.json())
@@ -1672,6 +1722,8 @@ class FMC(Provider):
             headers=self.authHeader,
             verify=False
         )
+        if nwGroup.status_code == 429:
+            time.sleep(int(nwGroup.headers["Retry-After"]))
         if nwGroup.content:
             temp = ''
 
@@ -1689,6 +1741,9 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
+
+                if nw.status_code == 429:
+                    time.sleep(int(nw.headers["Retry-After"]))
 
                 if nw.content:
                     temp = cat['name']

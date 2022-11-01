@@ -1,5 +1,6 @@
 from typing import Dict
 import requests
+import time
 from requests.auth import HTTPBasicAuth
 import csv
 from collections import OrderedDict
@@ -93,13 +94,18 @@ class HostObject:
         :param apiToken: The authentication token to add in the headers.
         :return: The status code of the response received from the api call.
         """
-        print("ApiToken for Host creation: ", apiToken)
+        # print("ApiToken for Host creation: ", apiToken)
 
         response = requests.post(url=self.creationURL,
                                  headers=apiToken,
                                  params=self.queryParameters,
                                  json=self.objectPostBody,
                                  verify=False)
+
+        if response.status_code == 429:
+            time.sleep(int(response.headers["Retry-After"]))
+
+        # print("Response: ", response.json())
 
         if response.status_code <= 299 and response.status_code >= 200:
             if 'id' in response.json().keys():
@@ -125,7 +131,7 @@ class HostObject:
                 self.objectUUID = response.json()['id']
             # print("Id: ", self.objectUUID)
 
-        print("Host body: ", response.json())
+        # print("Host body: ", response.json())
 
         # self.getAllHosts(self.apiToken)
         # print(response.json()['error']['messages'][0]['description'])

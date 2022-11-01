@@ -1,5 +1,6 @@
 import json
 import requests
+import time
 from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
 from Model.Utilities.ListUtils import contains
 from Model.Utilities.LoggingUtils import Logger_GetLogger
@@ -55,6 +56,8 @@ class GroupObject:
                                  headers=authHeader,
                                  json=self.postBody,
                                  verify=False)
+        if response.status_code == 429:
+            time.sleep(int(response.headers["Retry-After"]))
 
         if response.status_code <= 299 and response.status_code >= 200:
             self.groupUUID = response.json()['id']

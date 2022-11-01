@@ -1,5 +1,6 @@
 from typing import Dict
 import requests
+import time
 from Model.DataObjects.Enums.ObjectTypeEnum import ObjectTypeEnum
 from Model.Providers.FMCConfig import FMC
 from Model.Providers.PaloAltoConfig import PaloAlto
@@ -105,7 +106,8 @@ class NetworkObject:
                                  params=self.queryParameters,
                                  json=self.objectPostBody,
                                  verify=False)
-        print("Response: ", response.json())
+        if response.status_code == 429:
+            time.sleep(int(response.headers["Retry-After"]))
 
         if response.status_code <= 299 and response.status_code >= 200:
             if 'id' in response.json().keys():
