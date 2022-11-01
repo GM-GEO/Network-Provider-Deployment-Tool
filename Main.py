@@ -48,9 +48,9 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
     parsedObjectCSV = readCSVFromFile(objectFile)
-    print("Object CSV: ", parsedObjectCSV)
+    # print("Object CSV: ", parsedObjectCSV)
     parsedRuleCSV = readCSVFromFile(ruleFile)
-    print("Rule CSV: ", parsedRuleCSV)
+    # print("Rule CSV: ", parsedRuleCSV)
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
         while not checkValidIPAddress(ipAddress):
@@ -88,6 +88,7 @@ def main():
     elif serviceProvider == ProviderEnum.FMC.value:
         while not checkValidIPAddress(ipAddress):
             log.info("Enter FMC IP Address: ")
+            #TODO Add error checking to validate IP address format and potentially ping this indicated IP
             ipAddress = str(input())
 
         while not checkValidUsername(username):
@@ -96,6 +97,7 @@ def main():
 
         while not checkValidPassword(password):
             log.info("Enter password:")
+            #TODO Hash / Hide password while being inputted
             password = str(input())
 
         labFMC = FMC(ipAddress, username, password)
@@ -109,38 +111,43 @@ def main():
 
         Logger_AddBreakLine()
 
-
+        #TODO What is this doing? Explain, document. 
         for index, object in parsedObjectCSV.items():
             groupList = object['group'].split('/')
             labFMC.addObject('', object['type'],
                              object['name'],
                              object['value'],
                              group=groupList)
-
+        
+        #TODO Format output into human readable output
         print("Hosts: ", labFMC.getObjectList("host"))
         log.info("retrieved Host list.")
 
         labFMC.applyObjectList("host")
         log.info("applied changes to Hosts.")
 
+        #TODO Format output into human readable output
         print("Networks: ", labFMC.getObjectList("network"))
         log.info("retrieved Network list.")
 
         labFMC.applyObjectList("network")
         log.info("applied Network results.")
 
+        #TODO Format output into human readable output
         print("URLs: ", labFMC.getObjectList("url"))
         log.info("retrieved URL list.")
 
         labFMC.applyObjectList("url")
         log.info("applied URL results.")
-        #
+        
+        #TODO Format output into human readable output
         print("FQDN: ", labFMC.getObjectList("fqdn"))
         log.info("retrieved FQDN list.")
 
         labFMC.applyObjectList("fqdn")
         log.info("applied FQDN results.")
 
+        #TODO What is this commented out code? Use branches when experimenting with features. 
         # print("FQDN: ", labFMC.getObjectList("range"))
         # log.info("retrieved Range list.")
         #

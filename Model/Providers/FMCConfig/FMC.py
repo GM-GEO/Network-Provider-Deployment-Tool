@@ -91,14 +91,15 @@ class FMC(Provider):
         """
         We will need to extract these username/password values and either read them from user input or a security key file
         """
-        url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken'
+        
         response = requests.post(
-                url='https://10.255.20.10/api/fmc_platform/v1/auth/generatetoken',
+                url = 'https://' + self.fmcIP + '/api/fmc_platform/v1/auth/generatetoken',
                 auth=HTTPBasicAuth(username, password),
                 data={},
                 verify=False
             )
 
+        #TODO Is there multiple domains on FMC? If so how are we making sure we get the correct one. 
         if response.headers['DOMAIN_UUID']:
             self.domainId = response.headers['DOMAIN_UUID']
             self.logger.info("Domain Id found and set")
@@ -146,7 +147,7 @@ class FMC(Provider):
         Returns:
             None: The Host object is appended to the Host Object List
         """
-
+        #TODO Why is this commented?
         #if group:
         #    self.CheckAndAddGroup(group)
         
@@ -157,6 +158,7 @@ class FMC(Provider):
     def __addNetwork(self, name: str, value: str, description='', group=''):
         """
         Creates a Network object with the FMC constructor and adds it to the Network Object List.
+
         :param name: Name of the network to be added.
         :param value: The value of the network.
         :param description: Description of the network. It is optional and defaults to ''.
@@ -170,6 +172,7 @@ class FMC(Provider):
     def __addURL(self, name, url, description='', group=''):
         """
             Creates a Network object with the FMC constructor and adds it to the URL Object List.
+
             :param name: Name of the URL to be added.
             :param url: The value of the URL.
             :param description: Description of the network. It is optional and defaults to ''.
@@ -183,6 +186,7 @@ class FMC(Provider):
     def __addFQDN(self, name, value, description='', group=''):
         """
             Creates a FQDN object with the FMC constructor and adds it to the FQDN Object list.
+
             :param name: Name of the FQDN to be added.
             :param value: The value of FQDN.
             :param description: Description of the FQDN being added. It is optional and defaults to ''.
@@ -193,18 +197,22 @@ class FMC(Provider):
         fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
         self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
+
     def __addRange(self, name, value, description='', group=''):
+        #TODO Missing Docstring
         rangeObj = Range.RangeObject.FMCRange(self, name, value, description, group)
         self.logger.info("Range added. {Name: " + name + ", Value: " + value + "}")
         return self.rangeObjectList.append(rangeObj)
 
     def __addTCP(self, name, value, description='', group=''):
+        #TODO Missing Docstring
 
         tcpObj = TCP.TCPObject.FMCTCP(self, name, value, description)
         self.logger.info("TCP added. {Name: " + name + ", Value: " + value + "}")
         return self.tcpObjectList.append(tcpObj)
 
     def __addUDP(self, name, value, description='', group=''):
+        #TODO Missing Docstring
 
         udpObj = UDP.UDPObject.FMCUDP(self, name, value, description, group)
         self.logger.info("UDP added. {Name: " + name + ", Value: " + value + "}")
@@ -214,9 +222,11 @@ class FMC(Provider):
     def createGroupMembershipLists(self, type):
         """
         Makes the list of groups and the objects which are to be added in the respective groups.
+
         :param type: The type of the groups being created. Type 'url' will result in UrlGroups, and hosts,
                      FQDNs, and Networks will result in NetworkGroups
-        :return: The dictionary containing all the group names and their constituent objects.
+
+        :return: The dictionary containing all the group names and their constituent objects. (Where do objects come from? Elaborate.)
         """
         groupDict = {}
         if type == 'url':
@@ -338,6 +348,8 @@ class FMC(Provider):
         return networks.status_code
 
     def appendToGroup(self, groupId, groupType, objectName, objectId, objectType):
+        #TODO Missing Docstring.
+
             groupLocation = self.networkGroupLocation if groupType == "network" or "NetworkGroup" else self.urlGroupLocation
 
             url = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, groupLocation, groupId)
@@ -379,27 +391,25 @@ class FMC(Provider):
     def mergeDict(self, groupDict, temp_body):
         """
         A helper function, which merges dictionaries.
+
         :param groupDict: One of the dictionary to be merged.
         :param temp_body: The second dictionary to be merged.
+
         :return: The merged dictionary.
         """
 
-        print("groupDict: ", groupDict)
-        print("TTT body: ", temp_body)
         for group in groupDict:
             value = 0
             temp = group['name']
             for diction in temp_body[0]:
                 if temp == diction['name']:
                     value += 1
-            print("Value: ", value)
+
             if value == 0:
                 temp_body[0].append(group)
                 print("Done adding")
 
 
-
-        print("Body: ", temp_body)
 
         return temp_body
 
@@ -427,10 +437,8 @@ class FMC(Provider):
                     print("This groupName named ", objGroup.getName(),
                           "already exists. Making a PUT request.")
                     temp_body = [i[4], i[6]]
-                    print("Group test: ", groupDict[group])
-                    print("Temp body: ", temp_body)
+                   
                     postBody = self.mergeDict(groupDict[group], temp_body)
-                    print("Temp_body: ", postBody)
 
                     put_object = ObjectGroup.GroupObject(self.domainId, group, type, postBody, self.fmcIP)
                     put_object.modifyGroup(self.apiToken, i[1])
@@ -452,6 +460,8 @@ class FMC(Provider):
         print("All group objects: ", self.allGroupsList)
 
     def compareContainingObjects(self, groupDict, objectDict):
+        #TODO Missing Docstring
+
         if len(groupDict) != len(objectDict):
             return False
         else:
@@ -505,6 +515,7 @@ class FMC(Provider):
     def getObjectList(self, objectType):
         """
         Retrieves the list of objects of the said type.
+        
         :param objectType: The type of the objects whose list is to be returned.
         :return: The list containing the objects of the specified type.
         """
@@ -872,7 +883,7 @@ class FMC(Provider):
         if ports.content:
 
             ports = ports.json()['items']
-            print("Alllll ports: ", ports)
+            print("All ports: ", ports)
 
             temp = ''
 
@@ -886,15 +897,12 @@ class FMC(Provider):
                     headers=self.authHeader,
                     verify=False
                 )
-                # print("Before: ", port.content)
-                # print(port.status_code, port.content)
+
                 if port.content:
-                    # print("After", port.status_code, port.content)
+                    
 
                     port = port.json()
-                    # print("After: ", port)
-                    # print("Main port: ", port)
-                    # print(port['name'], port['port'])
+                    
 
 
                     # if port and port["name"]:
@@ -903,7 +911,7 @@ class FMC(Provider):
                         returnList.append([port['name'], port['id'],
                                            port['port'], port['protocol'], port['type'], port['description']])
                         temp = port['name']
-                        # print([port['name'], port['id'], port['port'], port['protocol'], port['type'], port['description']])
+                        
                     else:
                         print("The port ", port['name'], " does not have a port value associated with it.")
                 else:
