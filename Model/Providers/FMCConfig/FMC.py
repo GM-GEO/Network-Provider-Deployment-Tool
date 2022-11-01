@@ -1,4 +1,5 @@
 import requests
+import time
 from requests.auth import HTTPBasicAuth
 from Model.DataObjects import Host, Network, Port, FQDN, ObjectGroup, Application, AllGroupObjects, AllNetworksObject, TCP, UDP, Range
 from Model.DataObjects.Enums.GroupTypeEnum import GroupTypeEnum
@@ -7,6 +8,7 @@ from Model.RulesObjects import AccessPolicy, ApplicationCategory, ApplicationRis
 from Model.Utilities.LoggingUtils import Logger_GetLogger
 from Model.Utilities.StringUtils import checkYesNoResponse, checkValidGroupType
 from Model.DataObjects.Enums.YesNoEnum import YesNoEnum
+
 
 
 class FMC(Provider):
@@ -29,7 +31,7 @@ class FMC(Provider):
 
         self.apiToken = self.requestToken(username, password)
 
-        self.authHeader = {"X-auth-access-token": self.apiToken}
+        self.authHeader = {"X-auth-access-token": self.apiToken, "Retry-After": "3600"}
 
         self.hostObjectList = []
         self.networkObjectList = []
@@ -64,19 +66,19 @@ class FMC(Provider):
         self.natRules = "/Policies/NatRules"
 
 
-        self.allPortObjectList = self.__getAllPortObjects()
-        self.allRangeObjects = self.__getAllRanges()
-        self.securityZoneObjectList = self.__getSecurityZones()
+        self.allPortObjectList = self.__getAllPortObjects() #required
+        self.allRangeObjects = self.__getAllRanges() #required
+        self.securityZoneObjectList = self.__getSecurityZones() #required
         self.filePolicyObjectList = self.__getFilePolicies()
-        self.urlCategoryObjectList = self.__getURLCategories()
-        self.applicationObjectList = self.__getApplications()
+        self.urlCategoryObjectList = self.__getURLCategories() #required
+        self.applicationObjectList = self.__getApplications() #required
         # self.allNetworkGroupObjectList = self.__getAllNetworkGroups()
-        self.allNetworkObjectList = self.__getAllNetworks()
-        self.allGroupsList = self.__getAllGroups()
+        self.allNetworkObjectList = self.__getAllNetworks() #required
+        self.allGroupsList = self.__getAllGroups() #required
         # self.allUrlGroupList = self.__getAllUrlGroups()
-        self.allUrlObjectList = self.__getAllUrls()
-        self.allHostObjectList = self.__getAllHosts()
-        self.allFQDNObjects = self.__getAllFQDNs()
+        self.allUrlObjectList = self.__getAllUrls() #required
+        self.allHostObjectList = self.__getAllHosts() #required
+        self.allFQDNObjects = self.__getAllFQDNs() #required
         # self.allNetworkGroups = self.__getNetworkGroups()
 
         return None
@@ -243,7 +245,7 @@ class FMC(Provider):
                                     'id': urlID,
                                     'name': urlName
                                 })
-        elif type == 'network' or type == 'host' or type == 'fqdn':
+        elif type == 'network' or type == 'host' or type == 'fqdn' or type == 'range':
             for network in self.networkObjectList:
                 for i in self.allNetworkObjectList:
                     if i[0] == network.getName():
@@ -310,6 +312,29 @@ class FMC(Provider):
                                     'type': 'Host',
                                     'id': hostID,
                                     'name': hostName
+                                })
+
+            for range in self.rangeObjectList:
+                for i in self.allRangeObjects:
+                    if i[0] == range.getName():
+
+                        rangeName = range.getName()
+                        rangeID = i[1]
+                        groupName = range.getGroupMembership()
+                        for j in groupName:
+
+                            if j not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
+                                groupDict[j] = []
+                                groupDict[j].append({
+                                    'type': 'Host',
+                                    'id': rangeID,
+                                    'name': rangeName
+                                })
+                            else:
+                                groupDict[j].append({
+                                    'type': 'Host',
+                                    'id': rangeID,
+                                    'name': rangeName
                                 })
 
 
@@ -433,14 +458,14 @@ class FMC(Provider):
                     print("Temp_body: ", postBody)
 
                     put_object = ObjectGroup.GroupObject(self.domainId, group, type, postBody, self.fmcIP)
-                    put_object.modifyGroup(self.apiToken, i[1])
+                    put_object.modifyGroup(self.authHeader, i[1])
                     temp.append([objGroup.getName(), i[1], 'objects', type+'Group', postBody[0], 'literals', postBody[1]])
                     self.allGroupsList.remove(i)
 
                     pass
 
                 if flag == True:
-                    result = objGroup.createGroup(self.apiToken)
+                    result = objGroup.createGroup(self.authHeader)
                     print("Making group: ", result)
                     if int(result) < 299:
                         temp.append([objGroup.getName(), objGroup.getUUID(), 'objects', objGroup.getGroupMembership()+'Group', groupDict[group], 'literals', []])
@@ -677,8 +702,8 @@ class FMC(Provider):
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.remove(i)
 
-                                    authHeader = {"X-auth-access-token": self.apiToken}
-                                    result = network.createNetwork(authHeader)
+                                    # authHeader = {"X-auth-access-token": self.apiToken}
+                                    result = network.createNetwork(self.authHeader)
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allNetworkObjectList.append([network.getName(), network.getUUID(
                                         ), network.getValue(), network.getType(), network.getDescription()])
@@ -693,8 +718,8 @@ class FMC(Provider):
                     print(flag_network)
                     if flag_network == True:
                         print("Condition 2", network.getName())
-                        authHeader = {"X-auth-access-token": self.apiToken}
-                        result = network.createNetwork(authHeader)
+                        # authHeader = {"X-auth-access-token": self.apiToken}
+                        result = network.createNetwork(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allNetworkObjectList.append([network.getName(), network.getUUID(
                             ), network.getValue(), network.getType(), network.getDescription()])
@@ -822,6 +847,340 @@ class FMC(Provider):
             case _:
                 return None
 
+
+
+    # def applyObjectList(self, listType):
+    #     """
+    #     Creates the objects in FMC environment.
+    #     :param listType: The type of the objects whose FMC objects are to be created.
+    #     :return:
+    #     """
+    #     match listType:
+    #         case "host":
+    #             for host in self.hostObjectList:
+    #                 result = host.createHost(self.authHeader)
+    #
+    #                 if int(result) > 399:
+    #                     return result
+    #         case "network":
+    #             for network in self.networkObjectList:
+    #                 result = network.createNetwork(self.authHeader)
+    #
+    #                 if int(result) > 399:
+    #                     return result
+    #         case "fqdn":
+    #             for fqdn in self.FQDNObjectList:
+    #                 result = fqdn.createFQDN(self.authHeader)
+    #
+    #                 if int(result) > 399:
+    #                     return result
+    #         case "url":
+    #             for url in self.URLObjectList:
+    #                 result = url.createURL(self.authHeader)
+    #
+    #                 if int(result) > 399:
+    #                     return result
+    #         case "tcp":
+    #             for tcp in self.tcpObjectList:
+    #                 result = tcp.createTCP(self.authHeader)
+    #
+    #                 if int(result) > 399:
+    #                     return result
+    #         case "udp":
+    #             for udp in self.udpObjectList:
+    #                 result = udp.createUDP(self.authHeader)
+    #
+    #                 if int(result) > 399:
+    #                     return result
+    #         case _:
+    #             return None
+                # flag_host = True
+                    # for i in self.allHostObjectList:
+                    #
+                    #     if i[0] == host.getName():
+                    #         print("i host: ", i)
+                    #         flag_host = False
+                    #         if ((i[0] == host.getName()) and (i[2] == host.getValue())):
+                    #             print(
+                    #                 "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+                    #             flag_host = False
+                    #         elif ((i[0] == host.getName()) and (i[2] != host.getValue())):
+                    #             print(i[0], i[2],
+                    #                   "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+                    #             ans = str(input())
+                    #             if ans == 'Y':
+                    #                 print("Condition 1.2.1")
+                    #                 result = self.deleteHosts(i[1])
+                    #                 if int(result) <= 299 and int(result) >= 200:
+                    #                     self.allHostObjectList.remove(i)
+                    #                 result = host.createHost(self.authHeader)
+                    #                 if int(result) <= 299 and int(result) >= 200:
+                    #                     self.allHostObjectList.append([host.getName(), host.getUUID(), host.getValue(), host.getType(), host.getDescription()])
+                    #             else:
+                    #                 print("Condition 1.2.2: Skipped this host.")
+                    #
+                    # print(flag_host)
+                    # if flag_host == True:
+                    #     print("Condition 2", host.getName())
+                    #     result = host.createHost(self.authHeader)
+                    #     if int(result) <= 299 and int(result) >= 200:
+                    #         self.allHostObjectList.append(
+                    #             [host.getName(), host.getUUID(), host.getValue(), host.getType(), host.getDescription()])
+                    #     print(result)
+            # case "TCP":
+            #
+            #     for tcp in self.tcpObjectList:
+            #         flag_tcp = True
+            #         for i in self.allPortObjectList:
+            #
+            #             if i[0] == tcp.getName():
+            #                 print("i host: ", i)
+            #                 flag_tcp = False
+            #                 if ((i[0] == tcp.getName()) and (i[2] == tcp.getValue()) and i[3] == 'TCP'):
+            #                     print("Exactly same object so no need to delete. Condition 1.1 ", i[0])
+            #                     flag_tcp = False
+            #                 elif ((i[0] == tcp.getName()) and (i[2] != tcp.getValue())):
+            #                     print(i[0], i[2],
+            #                           "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+            #                     ans = str(input())
+            #                     # if ans == 'Y':
+            #                     #     print("Condition 1.2.1")
+            #                     #     # result = self.deleteTCP(i[1])
+            #                     #     # if int(result) <= 299 and int(result) >= 200:
+            #                     #     #     self.allPortObjectList.remove(i)
+            #                     #     result = tcp.createTCP(self.authHeader)
+            #                     #     if int(result) <= 299 and int(result) >= 200:
+            #                     #         self.allHostObjectList.append(
+            #                     #             [tcp.getName(), tcp.getUUID(), tcp.getValue(), 'TCP', tcp.getType(),
+            #                     #              tcp.getDescription()])
+            #                     # else:
+            #                     #     print("Condition 1.2.2: Skipped this host.")
+            #
+            #         print(flag_tcp)
+            #         if flag_tcp == True:
+            #             print("Condition 2", tcp.getName())
+            #             result = tcp.createTCP(self.authHeader)
+            #             if int(result) <= 299 and int(result) >= 200:
+            #                 self.allPortObjectList.append(
+            #                     [tcp.getName(), tcp.getID(), tcp.getValue(), 'TCP', tcp.getType(),
+            #                                  tcp.getDescription()])
+            #             print(result)
+            #
+            #             print("After ports: ", self.allPortObjectList)
+            # case "UDP":
+            #
+            #     for udp in self.udpObjectList:
+            #         flag_udp = True
+            #         for i in self.allPortObjectList:
+            #
+            #             if i[0] == udp.getName():
+            #                 print("i host: ", i)
+            #                 flag_udp = False
+            #                 if ((i[0] == udp.getName()) and (i[2] == udp.getValue()) and i[3] == 'UDP'):
+            #                     print("Exactly same object so no need to delete. Condition 1.1 ", i[0])
+            #                     flag_udp = False
+            #                 elif ((i[0] == udp.getName()) and (i[2] != udp.getValue())):
+            #                     print(i[0], i[2],
+            #                           "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+            #                     ans = str(input())
+            #                     # if ans == 'Y':
+            #                     #     print("Condition 1.2.1")
+            #                     #     # result = self.deleteTCP(i[1])
+            #                     #     # if int(result) <= 299 and int(result) >= 200:
+            #                     #     #     self.allPortObjectList.remove(i)
+            #                     #     result = tcp.createTCP(self.authHeader)
+            #                     #     if int(result) <= 299 and int(result) >= 200:
+            #                     #         self.allHostObjectList.append(
+            #                     #             [tcp.getName(), tcp.getUUID(), tcp.getValue(), 'TCP', tcp.getType(),
+            #                     #              tcp.getDescription()])
+            #                     # else:
+            #                     #     print("Condition 1.2.2: Skipped this host.")
+            #
+            #         print(flag_udp)
+            #         if flag_udp == True:
+            #             print("Condition 2", udp.getName())
+            #             result = udp.createUDP(self.authHeader)
+            #             if int(result) <= 299 and int(result) >= 200:
+            #                 self.allPortObjectList.append(
+            #                     [udp.getName(), udp.getID(), udp.getValue(), 'UDP', udp.getType(),
+            #                      udp.getDescription()])
+            #             print(result)
+            #
+            #             print("After ports: ", self.allPortObjectList)
+            #
+            # case "network":
+            #     for network in self.networkObjectList:
+            #         flag_network = True
+            #         for i in self.allNetworkObjectList:
+            #
+            #             if i[0] == network.getName():
+            #                 flag_network = False
+            #                 print("1: ", flag_network)
+            #                 print(i[0], "Condition 1")
+            #                 print("True for ", network.getGroupMembership(), "id: ", i)
+            #                 if ((i[0] == network.getName()) and (i[2] == network.getValue())):
+            #                     print(
+            #                         "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+            #                     flag_network = False
+            #                 elif ((i[0] == network.getName()) and (i[2] != network.getValue())):
+            #                     print(
+            #                         i[0], i[2], "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+            #                     ans = str(input())
+            #                     if ans == 'Y':
+            #                         print("Condition 1.2.1")
+            #                         result = self.deleteNetwork(i[1])
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allNetworkObjectList.remove(i)
+            #
+            #                         authHeader = {"X-auth-access-token": self.apiToken}
+            #                         result = network.createNetwork(authHeader)
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allNetworkObjectList.append([network.getName(), network.getUUID(
+            #                             ), network.getValue(), network.getType(), network.getDescription()])
+            #
+            #                         print("result crete network: ", result)
+            #                         print("Name for: ", network.getName(),
+            #                               " Id: ", network.getUUID())
+            #                     else:
+            #                         print(
+            #                             "Condition 1.2.2: Skipped this network.")
+            #
+            #         print(flag_network)
+            #         if flag_network == True:
+            #             print("Condition 2", network.getName())
+            #             authHeader = {"X-auth-access-token": self.apiToken}
+            #             result = network.createNetwork(authHeader)
+            #             if int(result) <= 299 and int(result) >= 200:
+            #                 self.allNetworkObjectList.append([network.getName(), network.getUUID(
+            #                 ), network.getValue(), network.getType(), network.getDescription()])
+            #             print(result)
+            #             print("Name for: ", network.getName(),
+            #                   " Id: ", network.getUUID())
+            #
+            # case "url":
+            #     for url in self.URLObjectList:
+            #         flag_url = True
+            #         for i in self.allUrlObjectList:
+            #
+            #             if i[0] == url.getName():
+            #                 flag_url = False
+            #                 print("1: ", flag_url)
+            #                 print(i[0], "Condition 1")
+            #                 # print("True for ", network.getName(), "id: ", i[1])
+            #                 if ((i[0] == url.getName()) and (i[2] == url.getValue())):
+            #                     print(
+            #                         "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+            #                     flag_url = False
+            #                 elif ((i[0] == url.getName()) and (i[2] != url.getValue())):
+            #                     print(i[0], i[2],
+            #                           "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+            #                     ans = str(input())
+            #                     if ans == 'Y':
+            #                         print("Condition 1.2.1")
+            #                         result = self.deleteUrls(i[1])
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allUrlObjectList.remove(i)
+            #                         result = url.createURL(self.authHeader)
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allUrlObjectList.append([url.getName(), url.getUUID(
+            #                             ), url.getValue(), url.getType(), url.getDescription()])
+            #                         print("result crete url: ", result)
+            #                         print("Name for: ", url.getName(),
+            #                               " Id: ", url.getUUID())
+            #                     else:
+            #                         print("Condition 1.2.2: Skipped this url.")
+            #
+            #         print(flag_url)
+            #         if flag_url == True:
+            #             print("Condition 2", url.getName())
+            #             result = url.createURL(self.authHeader)
+            #             if int(result) <= 299 and int(result) >= 200:
+            #                 self.allUrlObjectList.append([url.getName(), url.getUUID(
+            #                 ), url.getValue(), url.getType(), url.getDescription()])
+            #             print(result)
+            #             print("Name for: ", url.getName(),
+            #                   " Id: ", url.getUUID())
+            #
+            # case "fqdn":
+            #
+            #     for fqdn in self.FQDNObjectList:
+            #         flag_fqdn = True
+            #         for i in self.allFQDNObjects:
+            #
+            #             if i[0] == fqdn.getName():
+            #                 flag_fqdn = False
+            #                 if ((i[0] ==fqdn.getName()) and (i[2] == fqdn.getValue())):
+            #                     print(
+            #                         "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+            #                     flag_fqdn = False
+            #                 elif ((i[0] == fqdn.getName()) and (i[2] != fqdn.getValue())):
+            #                     print(i[0], i[2],
+            #                           "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+            #                     ans = str(input())
+            #                     if ans == 'Y':
+            #                         print("Condition 1.2.1")
+            #                         result = self.deleteFQDNs(i[1])
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allFQDNObjects.remove(i)
+            #                         result = fqdn.createFQDN(self.authHeader)
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allFQDNObjects.append([fqdn.getName(), fqdn.getID(
+            #                             ), fqdn.getValue(), fqdn.getType(), fqdn.getDescription()])
+            #                     else:
+            #                         print("Condition 1.2.2: Skipped this fqdn.")
+            #
+            #         print(flag_fqdn)
+            #         if flag_fqdn == True:
+            #             print("Condition 2", fqdn.getName())
+            #             result = fqdn.createFQDN(self.authHeader)
+            #             if int(result) <= 299 and int(result) >= 200:
+            #                 self.allFQDNObjects.append([fqdn.getName(), fqdn.getID(), fqdn.getValue(), fqdn.getType(), fqdn.getDescription()])
+            #             print(result)
+            #
+            # case "range":
+            #
+            #     for range in self.rangeObjectList:
+            #         flag_range = True
+            #         for i in self.allRangeObjects:
+            #
+            #             if i[0] == range.getName():
+            #                 flag_range = False
+            #                 if ((i[0] == range.getName()) and (i[2] == range.getValue())):
+            #                     print(
+            #                         "Exactly same object so no need to delete. Condition 1.1 ", i[0])
+            #                     flag_range = False
+            #                 elif ((i[0] == range.getName()) and (i[2] != range.getValue())):
+            #                     print(i[0], i[2],
+            #                           "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
+            #                     ans = str(input())
+            #                     if ans == 'Y':
+            #                         print("Condition 1.2.1")
+            #                         result = self.deleteRange(i[1])
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allRangeObjects.remove(i)
+            #                         result = range.createRange(self.authHeader)
+            #                         if int(result) <= 299 and int(result) >= 200:
+            #                             self.allRangeObjects.append([range.getName(), range.getID(
+            #                             ), range.getValue(), range.getType(), range.getDescription()])
+            #                     else:
+            #                         print("Condition 1.2.2: Skipped this range.")
+            #
+            #         print(flag_range)
+            #         if flag_range == True:
+            #             print("Condition 2", range.getName())
+            #             result = range.createRange(self.authHeader)
+            #             if int(result) <= 299 and int(result) >= 200:
+            #                 self.allRangeObjects.append(
+            #                     [range.getName(), range.getID(), range.getValue(), range.getType(), range.getDescription()])
+            #             print(result)
+            #
+            # case _:
+            #     return None
+
+
+
+
+
     def __getSecurityZones(self):
         """
         Retrieves the security zones from FMC environment.
@@ -870,6 +1229,7 @@ class FMC(Provider):
         )
         returnList = []
         if ports.content:
+            print(ports.content)
 
             ports = ports.json()['items']
             print("Alllll ports: ", ports)
@@ -1456,7 +1816,7 @@ class FMC(Provider):
         policyObject = AccessPolicy.AccessPolicyObject.FMCAccessPolicyObject(self, '005056B6-DCA2-0ed3-0000-017179871248', self.securityZoneObjectList, allNetworks,
                                                        self.allPortObjectList, self.filePolicyObjectList, self.urlCategoryObjectList, allUrls, self.allGroupsList, self.applicationObjectList, ruleCategory)
         
-        response = policyObject.createPolicy(self.apiToken, csvRow, ruleCategory)
+        response = policyObject.createPolicy(self.authHeader, csvRow, ruleCategory)
 
         return response
 

@@ -39,7 +39,7 @@ class GroupObject:
         else:
             self.postBody['type'] = "NetworkGroup"
 
-    def createGroup(self, apiToken):
+    def createGroup(self, authHeader):
         """
         Creates the group object.
         :param apiToken: The authentication token
@@ -49,10 +49,10 @@ class GroupObject:
         logger = Logger_GetLogger()
 
         #Set authentication in the header
-        authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-auth-access-token": apiToken}
 
         response = requests.post(url=self.creationURL,
-                                 headers=authHeaders,
+                                 headers=authHeader,
                                  json=self.postBody,
                                  verify=False)
 
@@ -63,7 +63,7 @@ class GroupObject:
 
         return response.status_code
 
-    def modifyGroup(self, apiToken, id):
+    def modifyGroup(self, authHeaders, id):
         """
         Makes a put request for object groups and add additional objects in already existing groups.
         :param apiToken: Authentication token
@@ -92,7 +92,7 @@ class GroupObject:
 
 
         # Set authentication in the header
-        authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-auth-access-token": apiToken}
 
         print("Inputs: ", authHeaders, url, postBody)
 

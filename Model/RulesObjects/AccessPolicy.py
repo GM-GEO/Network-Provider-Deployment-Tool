@@ -310,7 +310,7 @@ class AccessPolicyObject:
         logger = Logger_GetLogger()
         logger.info("Initiating Policy Creation")
 
-        authHeaders = {"X-auth-access-token": apiToken}
+        # authHeaders = {"X-auth-access-token": apiToken}
 
         # Split columns that can contain lists of values
         csvSourcePorts = csvRow['sourcePorts'].split('/')

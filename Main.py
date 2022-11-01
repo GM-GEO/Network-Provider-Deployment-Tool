@@ -141,11 +141,11 @@ def main():
         labFMC.applyObjectList("fqdn")
         log.info("applied FQDN results.")
 
-        # print("FQDN: ", labFMC.getObjectList("range"))
-        # log.info("retrieved Range list.")
-        #
-        # labFMC.applyObjectList("range")
-        # log.info("applied Range results.")
+        print("FQDN: ", labFMC.getObjectList("range"))
+        log.info("retrieved Range list.")
+
+        labFMC.applyObjectList("range")
+        log.info("applied Range results.")
         print("TCP: ", labFMC.getObjectList("TCP"))
         labFMC.applyObjectList("TCP")
 

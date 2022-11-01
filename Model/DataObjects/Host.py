@@ -100,6 +100,7 @@ class HostObject:
                                  params=self.queryParameters,
                                  json=self.objectPostBody,
                                  verify=False)
+
         print("Response: ", response.json())
 
         if response.status_code <= 299 and response.status_code >= 200:
@@ -109,7 +110,6 @@ class HostObject:
             #             " Type: " + self.getType() + "}")
 
         return response.status_code
-
 
     def createFMCHost(self, apiToken):
         # set authentication in the header
