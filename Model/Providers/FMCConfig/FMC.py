@@ -1418,14 +1418,20 @@ class FMC(Provider):
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation)
 
-        networks = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
-        while networks.status_code == 429:
-            print("429 error in networks: ", networks.headers)
-            time.sleep(10)
+        rateLimit = True
+        while rateLimit:
+            networks = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            if network.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
         returnList = []
 
 
