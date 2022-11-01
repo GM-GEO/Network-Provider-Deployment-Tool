@@ -1426,7 +1426,7 @@ class FMC(Provider):
                 verify=False
             )
 
-            if network.status_code != 429:
+            if networks.status_code != 429:
                 rateLimit = False
             else:
                 print("429 Error - Waiting 2 seconds to resend call: " + url)
