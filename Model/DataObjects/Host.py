@@ -101,8 +101,6 @@ class HostObject:
                                  json=self.objectPostBody,
                                  verify=False)
 
-        print("Response: ", response.json())
-
         if response.status_code <= 299 and response.status_code >= 200:
             if 'id' in response.json().keys():
                 self.objectUUID = response.json()['id']
