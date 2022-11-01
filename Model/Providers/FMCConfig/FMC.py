@@ -432,7 +432,7 @@ class FMC(Provider):
 
             if value == 0:
                 temp_body[0].append(group)
-                print("Done adding")
+                # print("Done adding")
 
 
 
@@ -477,12 +477,12 @@ class FMC(Provider):
                     # print("Making group: ", result)
                     if int(result) < 299:
                         temp.append([objGroup.getName(), objGroup.getUUID(), 'objects', objGroup.getGroupMembership()+'Group', groupDict[group], 'literals', []])
-                        print("New group: ", temp)
-                        print("Successfully created")
+                        # print("New group: ", temp)
+                        # print("Successfully created")
                         pass
         for j in temp:
             self.allGroupsList.append(j)
-        print("All group objects: ", self.allGroupsList)
+        # print("All group objects: ", self.allGroupsList)
 
     def compareContainingObjects(self, groupDict, objectDict):
         #TODO Missing Docstring
@@ -579,7 +579,7 @@ class FMC(Provider):
                     for i in self.allHostObjectList:
 
                         if i[0] == host.getName():
-                            print("i host: ", i)
+                            # print("i host: ", i)
                             flag_host = False
                             if ((i[0] == host.getName()) and (i[2] == host.getValue())):
                                 print(
@@ -590,7 +590,7 @@ class FMC(Provider):
                                       "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
                                 ans = str(input())
                                 if ans == 'Y':
-                                    print("Condition 1.2.1")
+                                    # print("Condition 1.2.1")
                                     result = self.deleteHosts(i[1])
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allHostObjectList.remove(i)
@@ -600,9 +600,9 @@ class FMC(Provider):
                                 else:
                                     print("Condition 1.2.2: Skipped this host.")
 
-                    print(flag_host)
+                    # print(flag_host)
                     if flag_host == True:
-                        print("Condition 2", host.getName())
+                        # print("Condition 2", host.getName())
                         result = host.createHost(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allHostObjectList.append(
@@ -615,7 +615,7 @@ class FMC(Provider):
                     for i in self.allPortObjectList:
 
                         if i[0] == tcp.getName():
-                            print("i host: ", i)
+                            # print("i host: ", i)
                             flag_tcp = False
                             if ((i[0] == tcp.getName()) and (i[2] == tcp.getValue()) and i[3] == 'TCP'):
                                 print("Exactly same object so no need to delete. Condition 1.1 ", i[0])
@@ -637,9 +637,9 @@ class FMC(Provider):
                                 # else:
                                 #     print("Condition 1.2.2: Skipped this host.")
 
-                    print(flag_tcp)
+                    # print(flag_tcp)
                     if flag_tcp == True:
-                        print("Condition 2", tcp.getName())
+                        # print("Condition 2", tcp.getName())
                         result = tcp.createTCP(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allPortObjectList.append(
@@ -647,7 +647,7 @@ class FMC(Provider):
                                              tcp.getDescription()])
                         print(result)
 
-                        print("After ports: ", self.allPortObjectList)
+                        # print("After ports: ", self.allPortObjectList)
             case "UDP":
 
                 for udp in self.udpObjectList:
@@ -655,7 +655,7 @@ class FMC(Provider):
                     for i in self.allPortObjectList:
 
                         if i[0] == udp.getName():
-                            print("i host: ", i)
+                            # print("i host: ", i)
                             flag_udp = False
                             if ((i[0] == udp.getName()) and (i[2] == udp.getValue()) and i[3] == 'UDP'):
                                 print("Exactly same object so no need to delete. Condition 1.1 ", i[0])
@@ -677,9 +677,9 @@ class FMC(Provider):
                                 # else:
                                 #     print("Condition 1.2.2: Skipped this host.")
 
-                    print(flag_udp)
+                    # print(flag_udp)
                     if flag_udp == True:
-                        print("Condition 2", udp.getName())
+                        # print("Condition 2", udp.getName())
                         result = udp.createUDP(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allPortObjectList.append(
@@ -687,7 +687,7 @@ class FMC(Provider):
                                  udp.getDescription()])
                         print(result)
 
-                        print("After ports: ", self.allPortObjectList)
+                        # print("After ports: ", self.allPortObjectList)
 
             case "network":
                 for network in self.networkObjectList:
@@ -696,9 +696,9 @@ class FMC(Provider):
 
                         if i[0] == network.getName():
                             flag_network = False
-                            print("1: ", flag_network)
-                            print(i[0], "Condition 1")
-                            print("True for ", network.getGroupMembership(), "id: ", i)
+                            # print("1: ", flag_network)
+                            # print(i[0], "Condition 1")
+                            # print("True for ", network.getGroupMembership(), "id: ", i)
                             if ((i[0] == network.getName()) and (i[2] == network.getValue())):
                                 print(
                                     "Exactly same object so no need to delete. Condition 1.1 ", i[0])
@@ -720,13 +720,13 @@ class FMC(Provider):
                                         ), network.getValue(), network.getType(), network.getDescription()])
 
                                     print("result crete network: ", result)
-                                    print("Name for: ", network.getName(),
-                                          " Id: ", network.getUUID())
+                                    # print("Name for: ", network.getName(),
+                                    #       " Id: ", network.getUUID())
                                 else:
                                     print(
                                         "Condition 1.2.2: Skipped this network.")
 
-                    print(flag_network)
+                    # print(flag_network)
                     if flag_network == True:
                         print("Condition 2", network.getName())
                         # authHeader = {"X-auth-access-token": self.apiToken}
@@ -735,8 +735,8 @@ class FMC(Provider):
                             self.allNetworkObjectList.append([network.getName(), network.getUUID(
                             ), network.getValue(), network.getType(), network.getDescription()])
                         print(result)
-                        print("Name for: ", network.getName(),
-                              " Id: ", network.getUUID())
+                        # print("Name for: ", network.getName(),
+                        #       " Id: ", network.getUUID())
 
             case "url":
                 for url in self.URLObjectList:
@@ -745,8 +745,8 @@ class FMC(Provider):
 
                         if i[0] == url.getName():
                             flag_url = False
-                            print("1: ", flag_url)
-                            print(i[0], "Condition 1")
+                            # print("1: ", flag_url)
+                            # print(i[0], "Condition 1")
                             # print("True for ", network.getName(), "id: ", i[1])
                             if ((i[0] == url.getName()) and (i[2] == url.getValue())):
                                 print(
@@ -757,7 +757,7 @@ class FMC(Provider):
                                       "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
                                 ans = str(input())
                                 if ans == 'Y':
-                                    print("Condition 1.2.1")
+                                    # print("Condition 1.2.1")
                                     result = self.deleteUrls(i[1])
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allUrlObjectList.remove(i)
@@ -766,12 +766,12 @@ class FMC(Provider):
                                         self.allUrlObjectList.append([url.getName(), url.getUUID(
                                         ), url.getValue(), url.getType(), url.getDescription()])
                                     print("result crete url: ", result)
-                                    print("Name for: ", url.getName(),
-                                          " Id: ", url.getUUID())
+                                    # print("Name for: ", url.getName(),
+                                    #       " Id: ", url.getUUID())
                                 else:
                                     print("Condition 1.2.2: Skipped this url.")
 
-                    print(flag_url)
+                    # print(flag_url)
                     if flag_url == True:
                         print("Condition 2", url.getName())
                         result = url.createURL(self.authHeader)
@@ -779,8 +779,8 @@ class FMC(Provider):
                             self.allUrlObjectList.append([url.getName(), url.getUUID(
                             ), url.getValue(), url.getType(), url.getDescription()])
                         print(result)
-                        print("Name for: ", url.getName(),
-                              " Id: ", url.getUUID())
+                        # print("Name for: ", url.getName(),
+                        #       " Id: ", url.getUUID())
 
             case "fqdn":
 
@@ -799,7 +799,7 @@ class FMC(Provider):
                                       "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
                                 ans = str(input())
                                 if ans == 'Y':
-                                    print("Condition 1.2.1")
+                                    # print("Condition 1.2.1")
                                     result = self.deleteFQDNs(i[1])
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allFQDNObjects.remove(i)
@@ -810,9 +810,9 @@ class FMC(Provider):
                                 else:
                                     print("Condition 1.2.2: Skipped this fqdn.")
 
-                    print(flag_fqdn)
+                    # print(flag_fqdn)
                     if flag_fqdn == True:
-                        print("Condition 2", fqdn.getName())
+                        # print("Condition 2", fqdn.getName())
                         result = fqdn.createFQDN(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allFQDNObjects.append([fqdn.getName(), fqdn.getID(), fqdn.getValue(), fqdn.getType(), fqdn.getDescription()])
@@ -846,9 +846,9 @@ class FMC(Provider):
                                 else:
                                     print("Condition 1.2.2: Skipped this range.")
 
-                    print(flag_range)
+                    # print(flag_range)
                     if flag_range == True:
-                        print("Condition 2", range.getName())
+                        # print("Condition 2", range.getName())
                         result = range.createRange(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allRangeObjects.append(
@@ -1200,14 +1200,21 @@ class FMC(Provider):
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.securityZoneLocation)
 
-        securityZones = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
-        while securityZones.status_code == 429:
-            print("429 error in security zones: ", securityZones.headers)
-            time.sleep(10)
+        securityZones = ''
+        rateLimit = True
+        while rateLimit:
+
+            securityZones = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            if securityZones.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
         returnList = []
 
         if securityZones.content:
@@ -1235,23 +1242,28 @@ class FMC(Provider):
         queryParameters['limit'] = 2000
         queryParameters['offset'] = 0
 
-        ports = requests.get(
-            url=url,
-            headers=self.authHeader,
-            params=queryParameters,
-            verify=False
-        )
+        ports=''
+        rateLimitPorts = True
+        while rateLimitPorts:
+            ports = requests.get(
+                url=url,
+                headers=self.authHeader,
+                params=queryParameters,
+                verify=False
+            )
 
-        while ports.status_code == 429:
-            print("429 error in ports: ", ports.headers)
-            time.sleep(10)
+            if ports.status_code != 429:
+                rateLimitPorts = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
 
         returnList = []
         if ports.content:
-            print(ports.content)
+            # print(ports.content)
 
             ports = ports.json()['items']
-            print("All ports: ", ports)
+            # print("All ports: ", ports)
 
             temp = ''
 
@@ -1260,14 +1272,22 @@ class FMC(Provider):
 
                 newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.portLocation, cat['id'])
 
-                port = requests.get(
-                    url=newUrl,
-                    headers=self.authHeader,
-                    verify=False
-                )
-                while port.status_code == 429:
-                    print("429 header: ", port.headers)
-                    time.sleep(10)
+                port = ''
+                rateLimitPort = True
+                while rateLimitPort:
+
+                    port = requests.get(
+                        url=newUrl,
+                        headers=self.authHeader,
+                        verify=False
+                    )
+
+                    if port.status_code != 429:
+                        rateLimitPort = False
+                    else:
+                        print("429 Error - Waiting 2 seconds to resend call: " + url)
+                        time.sleep(2)
+
 
                 if port.content:
                     
@@ -1317,15 +1337,23 @@ class FMC(Provider):
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.filePolicyLocation)
 
-        filePolicies = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
+        filePolicies = ''
+        rateLimit = True
+        while rateLimit:
 
-        while filePolicies.status_code == 429:
-            print("429 error in file policies: ", filePolicies.headers)
-            time.sleep(10)
+            filePolicies = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            if filePolicies.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
+
         returnList = []
         if filePolicies.content:
 
@@ -1349,16 +1377,23 @@ class FMC(Provider):
         """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlCategoryLocation)
+        urlCategories = ''
+        rateLimit = True
+        while rateLimit:
 
-        urlCategories = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
+            urlCategories = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
 
-        while urlCategories.status_code == 429:
-            print("429 error in url categories: ", urlCategories.headers)
-            time.sleep(10)
+            if urlCategories.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
+
         returnList = []
 
         if urlCategories.content:
@@ -1384,14 +1419,21 @@ class FMC(Provider):
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.applicationLocation)
 
-        applications = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
-        while applications.status_code == 429:
-            print("429 error in applications:", applications.headers)
-            time.sleep(10)
+        applications=''
+        rateLimit = True
+        while rateLimit:
+
+            applications = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+            if applications.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
 
         returnList = []
 
@@ -1417,9 +1459,10 @@ class FMC(Provider):
         """
 
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation)
+        networks = ''
 
-        rateLimit = True
-        while rateLimit:
+        rateLimitNws = True
+        while rateLimitNws:
             networks = requests.get(
                 url=url,
                 headers=self.authHeader,
@@ -1427,7 +1470,7 @@ class FMC(Provider):
             )
 
             if networks.status_code != 429:
-                rateLimit = False
+                rateLimitNws = False
             else:
                 print("429 Error - Waiting 2 seconds to resend call: " + url)
                 time.sleep(2)
@@ -1445,17 +1488,21 @@ class FMC(Provider):
 
                 newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.networkLocation,
                                                    cat['id'])
+                network = ''
 
+                rateLimitNw = True
+                while rateLimitNw:
+                    network = requests.get(
+                        url=newUrl,
+                        headers=self.authHeader,
+                        verify=False
+                    )
 
-                network = requests.get(
-                    url=newUrl,
-                    headers=self.authHeader,
-                    verify=False
-                )
-
-                while network.status_code == 429:
-                    print("429 error in nw", network.headers)
-                    time.sleep(10)
+                    if network.status_code != 429:
+                        rateLimitNw = False
+                    else:
+                        print("429 Error - Waiting 2 seconds to resend call: " + url)
+                        time.sleep(2)
 
                 if network.content:
 
@@ -1482,14 +1529,22 @@ class FMC(Provider):
         """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation)
 
-        networks = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
-        while networks.status_code == 429:
-            print("429 error")
-            time.sleep(10)
+        networks = ''
+
+        rateLimitUrls = True
+        while rateLimitUrls:
+            networks = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            if networks.status_code != 429:
+                rateLimitUrls = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
 
         returnList = []
 
@@ -1505,15 +1560,22 @@ class FMC(Provider):
                 newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.urlLocation,
                                                    cat['id'])
 
-                network = requests.get(
-                    url=newURL,
-                    headers=self.authHeader,
-                    verify=False
-                )
-                while network.status_code == 429:
-                    print("429 error")
+                network = ''
+                rateLimitUrl = True
+                while rateLimitUrl:
 
-                    time.sleep(10)
+                    network = requests.get(
+                        url=newURL,
+                        headers=self.authHeader,
+                        verify=False
+                    )
+
+                    if network.status_code != 429:
+                        rateLimitUrl = False
+                    else:
+                        print("429 Error - Waiting 2 seconds to resend call: " + url)
+                        time.sleep(2)
+
 
                 if network.content:
 
@@ -1533,16 +1595,21 @@ class FMC(Provider):
         :return: The list containing the details of all the Hosts.
         """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation)
+        hosts = ''
+        rateLimitHosts = True
+        while rateLimitHosts:
+            hosts = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+            if hosts.status_code != 429:
+                rateLimitHosts = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
 
-        hosts = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
-        while hosts.status_code == 429:
-            print("429 error")
 
-            time.sleep(10)
         returnList = []
 
         if hosts.content:
@@ -1555,16 +1622,21 @@ class FMC(Provider):
 
                 newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.hostLocation,
                                                    cat['id'])
+                host = ''
+                rateLimitHost = True
+                while rateLimitHost:
 
-                host = requests.get(
-                    url=newURL,
-                    headers=self.authHeader,
-                    verify=False
-                )
-                while host.status_code == 429:
-                    print("429 error")
+                    host = requests.get(
+                        url=newURL,
+                        headers=self.authHeader,
+                        verify=False
+                    )
+                    if host.status_code != 429:
+                        rateLimitHost = False
+                    else:
+                        print("429 Error - Waiting 2 seconds to resend call: " + url)
+                        time.sleep(2)
 
-                    time.sleep(10)
 
                 if host.content:
 
@@ -1587,16 +1659,21 @@ class FMC(Provider):
         """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation)
 
-        fqdn = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
+        fqdn = ''
+        rateLimitFQDNs = True
+        while rateLimitFQDNs:
 
-        while fqdn.status_code == 429:
-            print("429 error")
+            fqdn = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+            if fqdn.status_code != 429:
+                rateLimitFQDNs = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
 
-            time.sleep(20)
 
         returnList = []
         temp = ''
@@ -1612,16 +1689,22 @@ class FMC(Provider):
 
                     newURL = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId, self.fqdnLocation,
                                                        cat['id'])
+                    fqdn = ''
+                    rateLimitFQDN = True
+                    while rateLimitFQDN:
 
-                    fqdn = requests.get(
-                        url=newURL,
-                        headers=self.authHeader,
-                        verify=False
-                    )
+                        fqdn = requests.get(
+                            url=newURL,
+                            headers=self.authHeader,
+                            verify=False
+                        )
+                        if fqdn.status_code != 429:
+                            rateLimitFQDN = False
+                        else:
+                            print("429 Error - Waiting 2 seconds to resend call: " + url)
+                            time.sleep(2)
 
-                    while fqdn.status_code == 429:
-                        print("429 error: ", fqdn.headers)
-                        time.sleep(20)
+
 
                     if fqdn.content:
 
@@ -1638,15 +1721,14 @@ class FMC(Provider):
     def __getAllRanges(self):
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.rangeLocation)
 
+
         range = requests.get(
             url=url,
             headers=self.authHeader,
             verify=False
         )
 
-        while range.status_code == 429:
-            print("429 error in range: ", range.headers)
-            time.sleep(10)
+
 
         returnList = []
         # print("Range all response: ", range.json())
@@ -1666,9 +1748,7 @@ class FMC(Provider):
                         verify=False
                     )
 
-                    while range.status_code == 429:
-                        print("429 error in range: ", range.headers)
-                        time.sleep(10)
+
 
                     range = range.json()
                     returnList.append([range['name'], range['id'], range['value'], range['type'], range['description']])
@@ -1696,14 +1776,21 @@ class FMC(Provider):
         """
         url = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.networkGroupLocation)
 
-        nwGroup = requests.get(
-            url=url,
-            headers=self.authHeader,
-            verify=False
-        )
-        while nwGroup.status_code == 429:
-            print("429 error in nw groups: ", nwGroup.headers)
-            time.sleep(10)
+        nwGroup = ''
+        rateLimitNwGroups = True
+        while rateLimitNwGroups:
+
+            nwGroup = requests.get(
+                url=url,
+                headers=self.authHeader,
+                verify=False
+            )
+            if nwGroup.status_code != 429:
+                rateLimitNwGroups = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
         returnList = []
         temp = ''
 
@@ -1719,14 +1806,22 @@ class FMC(Provider):
                 newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
                                                    self.networkGroupLocation, cat['id'])
 
-                nw = requests.get(
-                    url=newUrl,
-                    headers=self.authHeader,
-                    verify=False
-                )
-                while nw.status_code == 429:
-                    print("429 error in nw groups: ", nw.headers)
-                    time.sleep(10)
+                nw = ''
+                rateLimitnw = True
+                while rateLimitnw:
+
+                    nw = requests.get(
+                        url=newUrl,
+                        headers=self.authHeader,
+                        verify=False
+                    )
+
+                    if nw.status_code != 429:
+                        rateLimitnw = False
+                    else:
+                        print("429 Error - Waiting 2 seconds to resend call: " + url)
+                        time.sleep(2)
+
                 if nw.content:
                     temp = cat['name']
                 # print("One nw: ", nw.json())
@@ -1745,14 +1840,22 @@ class FMC(Provider):
 
         url2 = buildUrlForResource(self.fmcIP, self.domainLocation, self.domainId, self.urlGroupLocation)
 
-        nwGroup = requests.get(
-            url=url2,
-            headers=self.authHeader,
-            verify=False
-        )
-        while nwGroup.status_code == 429:
-            print("429 error in url groups: ", nwGroup)
-            time.sleep(10)
+        nwGroup = ''
+        rateLimitnw = True
+        while rateLimitnw:
+
+            nwGroup = requests.get(
+                url=url2,
+                headers=self.authHeader,
+                verify=False
+            )
+
+            if nwGroup.status_code != 429:
+                rateLimitnw = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + url)
+                time.sleep(2)
+
         if nwGroup.content:
             temp = ''
 
@@ -1765,15 +1868,21 @@ class FMC(Provider):
                 newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
                                                    self.urlGroupLocation, cat['id'])
 
-                nw = requests.get(
-                    url=newUrl,
-                    headers=self.authHeader,
-                    verify=False
-                )
+                nw=''
+                rateLimitnw = True
+                while rateLimitnw:
 
-                while nw.status_code == 429:
-                    print("429 error in url groups: ", nw.headers)
-                    time.sleep(10)
+                    nw = requests.get(
+                        url=newUrl,
+                        headers=self.authHeader,
+                        verify=False
+                    )
+
+                    if nw.status_code != 429:
+                        rateLimitnw = False
+                    else:
+                        print("429 Error - Waiting 2 seconds to resend call: " + url)
+                        time.sleep(2)
 
                 if nw.content:
                     temp = cat['name']

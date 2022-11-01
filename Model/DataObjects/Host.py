@@ -95,15 +95,21 @@ class HostObject:
         :return: The status code of the response received from the api call.
         """
         # print("ApiToken for Host creation: ", apiToken)
+        response=''
+        rateLimit=True
+        while rateLimit:
 
-        response = requests.post(url=self.creationURL,
-                                 headers=apiToken,
-                                 params=self.queryParameters,
-                                 json=self.objectPostBody,
-                                 verify=False)
+            response = requests.post(url=self.creationURL,
+                                     headers=apiToken,
+                                     params=self.queryParameters,
+                                     json=self.objectPostBody,
+                                     verify=False)
 
-        if response.status_code == 429:
-            time.sleep(int(response.headers["Retry-After"]))
+            if response.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + self.creationURL)
+                time.sleep(2)
 
         # print("Response: ", response.json())
 

@@ -51,13 +51,20 @@ class GroupObject:
 
         #Set authentication in the header
         # authHeaders = {"X-auth-access-token": apiToken}
+        rateLimit = True
+        response=''
+        while rateLimit:
 
-        response = requests.post(url=self.creationURL,
-                                 headers=authHeader,
-                                 json=self.postBody,
-                                 verify=False)
-        if response.status_code == 429:
-            time.sleep(int(response.headers["Retry-After"]))
+            response = requests.post(url=self.creationURL,
+                                     headers=authHeader,
+                                     json=self.postBody,
+                                     verify=False)
+            if response.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + self.creationURL)
+                time.sleep(2)
+
 
         if response.status_code <= 299 and response.status_code >= 200:
             self.groupUUID = response.json()['id']

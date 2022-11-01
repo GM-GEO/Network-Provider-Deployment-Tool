@@ -66,11 +66,20 @@ class URLObject:
         # authHeaders = {"X-auth-access-token": apiToken}
         logger = Logger_GetLogger()
 
-        response = requests.post(url=self.creationURL,
-                                 headers=apiToken,
-                                 params=self.queryParameters,
-                                 json=self.objectPostBody,
-                                 verify=False)
+        response=''
+        rateLimit = True
+        while rateLimit:
+
+            response = requests.post(url=self.creationURL,
+                                     headers=apiToken,
+                                     params=self.queryParameters,
+                                     json=self.objectPostBody,
+                                     verify=False)
+            if response.status_code != 429:
+                rateLimit = False
+            else:
+                print("429 Error - Waiting 2 seconds to resend call: " + self.creationURL)
+                time.sleep(2)
 
         if response.status_code == 429:
             time.sleep(int(response.headers["Retry-After"]))
