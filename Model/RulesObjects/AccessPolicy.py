@@ -116,7 +116,7 @@ class AccessPolicyObject:
         for network in self.networks:
             # print("Comparing values: ", csvRow['sourceNetworks'], network[0])
             if network[0] in sourceNetworks:
-                print("In networks 1")
+                # print("In networks 1")
                 sourceNetwork = {}
                 sourceNetwork['name'] = network[0]
                 # sourceNetwork['id'] = network.getUUID()
@@ -124,9 +124,9 @@ class AccessPolicyObject:
                 sourceNetwork['type'] = network[3]
                 sourceNetwork['overridable'] = False
                 csvSourceNetworks.append(sourceNetwork)
-                print("Condition 1: ", sourceNetwork)
+                # print("Condition 1: ", sourceNetwork)
             if network[0] in destinationNetworks:
-                print("In networks 2")
+                # print("In networks 2")
 
                 destinationNetwork = {}
                 destinationNetwork['name'] = network[0]
@@ -135,7 +135,7 @@ class AccessPolicyObject:
                 destinationNetwork['type'] = network[3]
                 destinationNetwork['overridable'] = False
                 csvDestinationNetworks.append(destinationNetwork)
-                print("Condition 2: ", destinationNetwork)
+                # print("Condition 2: ", destinationNetwork)
 
         # if csvSourceNetworks == [] or csvDestinationNetworks == []:  #if the network was not found in the list of network objects
         #     for group in self.groups:
@@ -156,8 +156,8 @@ class AccessPolicyObject:
         #             destinationNetwork['id'] = group[1]
         #             destinationNetwork['type'] = 'NetworkGroup'
         #             print("Condition 4: ", destinationNetwork)
-        print("Returned source networks list: ", csvSourceNetworks)
-        print("Returned destination networks: ", csvDestinationNetworks)
+        # print("Returned source networks list: ", csvSourceNetworks)
+        # print("Returned destination networks: ", csvDestinationNetworks)
 
         return (csvSourceNetworks, csvDestinationNetworks)
 

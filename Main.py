@@ -173,8 +173,8 @@ def main():
         # labFMC.createGroups("host")
         # log.info("created Host Groups.")
 
-        # for index, rule in parsedRuleCSV.items():
-        #     labFMC.createAccessRule(rule, rule_category)
+        for index, rule in parsedRuleCSV.items():
+            labFMC.createAccessRule(rule, rule_category)
 
         # print("Networks, hosts, fqdns, and network groups: ", labFMC.mergeAllNetworkTypes())
 
