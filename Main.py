@@ -48,7 +48,7 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
     parsedObjectCSV = readCSVFromFile(objectFile)
-    # print("Object CSV: ", parsedObjectCSV)
+    print("Object CSV: ", parsedObjectCSV)
     parsedRuleCSV = readCSVFromFile(ruleFile)
     # print("Rule CSV: ", parsedRuleCSV)
 
@@ -115,6 +115,7 @@ def main():
             labFMC.addObject('', object['type'],
                              object['name'],
                              object['value'],
+                             object['description'],
                              group=groupList)
 
         # print("Hosts: ", labFMC.getObjectList("host"))

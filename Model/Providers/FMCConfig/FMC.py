@@ -153,7 +153,8 @@ class FMC(Provider):
         #if group:
         #    self.CheckAndAddGroup(group)
         
-        hostObj = Host.HostObject.FMCHost(self, name, value, description, group)    
+        hostObj = Host.HostObject.FMCHost(self, name, value, description, group)
+        print("Host description: ", hostObj.getDescription(), hostObj.getName())
         # self.logger.info("Host added. {Name: " + name + ", Value: " + group + "}")
         return self.hostObjectList.append(hostObj)
 
@@ -237,6 +238,7 @@ class FMC(Provider):
                     if url.getName() == i[0]:
                         urlName = url.getName()
                         urlID = i[1]
+
                         groupName = url.getGroupMembership()
 
                         for j in groupName:
@@ -728,7 +730,7 @@ class FMC(Provider):
 
                     # print(flag_network)
                     if flag_network == True:
-                        print("Condition 2", network.getName())
+                        # print("Condition 2", network.getName())
                         # authHeader = {"X-auth-access-token": self.apiToken}
                         result = network.createNetwork(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
