@@ -48,9 +48,9 @@ def main():
 
     log.info("Rule file selected. {Filename: " + ruleFile + "}")
     parsedObjectCSV = readCSVFromFile(objectFile)
-    print("Object CSV: ", parsedObjectCSV)
+    # print("Object CSV: ", parsedObjectCSV)
     parsedRuleCSV = readCSVFromFile(ruleFile)
-    print("Rule CSV: ", parsedRuleCSV)
+    # print("Rule CSV: ", parsedRuleCSV)
 
     if serviceProvider == ProviderEnum.PALOALTO.value:
         while not checkValidIPAddress(ipAddress):

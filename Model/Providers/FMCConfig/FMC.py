@@ -773,7 +773,7 @@ class FMC(Provider):
 
                     # print(flag_url)
                     if flag_url == True:
-                        print("Condition 2", url.getName())
+                        # print("Condition 2", url.getName())
                         result = url.createURL(self.authHeader)
                         if int(result) <= 299 and int(result) >= 200:
                             self.allUrlObjectList.append([url.getName(), url.getUUID(
@@ -835,7 +835,7 @@ class FMC(Provider):
                                       "Condition 1.2: There exists an object with the same name. Do you want to delete the existing object? Please answer Y/N: ")
                                 ans = str(input())
                                 if ans == 'Y':
-                                    print("Condition 1.2.1")
+                                    # print("Condition 1.2.1")
                                     result = self.deleteRange(i[1])
                                     if int(result) <= 299 and int(result) >= 200:
                                         self.allRangeObjects.remove(i)
@@ -1858,47 +1858,47 @@ class FMC(Provider):
 
         if nwGroup.content:
             temp = ''
+            if 'items' in nwGroup.json().keys():
+                urlGroup = nwGroup.json()['items']
+                # returnList = []
 
-            urlGroup = nwGroup.json()['items']
-            # returnList = []
+                for cat in urlGroup:
+                    del cat['links']
 
-            for cat in urlGroup:
-                del cat['links']
+                    newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
+                                                       self.urlGroupLocation, cat['id'])
 
-                newUrl = buildUrlForResourceWithId(self.fmcIP, self.domainLocation, self.domainId,
-                                                   self.urlGroupLocation, cat['id'])
+                    nw=''
+                    rateLimitnw = True
+                    while rateLimitnw:
 
-                nw=''
-                rateLimitnw = True
-                while rateLimitnw:
+                        nw = requests.get(
+                            url=newUrl,
+                            headers=self.authHeader,
+                            verify=False
+                        )
 
-                    nw = requests.get(
-                        url=newUrl,
-                        headers=self.authHeader,
-                        verify=False
-                    )
+                        if nw.status_code != 429:
+                            rateLimitnw = False
+                        else:
+                            print("429 Error - Waiting 2 seconds to resend call: " + url)
+                            time.sleep(2)
 
-                    if nw.status_code != 429:
-                        rateLimitnw = False
+                    if nw.content:
+                        temp = cat['name']
+                        if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
+                            returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals',
+                                               nw.json()['literals']])
+                        if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
+                            returnList.append(
+                                [cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
+                        if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
+                            returnList.append(
+                                [cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
+                        if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
+                            returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
                     else:
-                        print("429 Error - Waiting 2 seconds to resend call: " + url)
-                        time.sleep(2)
-
-                if nw.content:
-                    temp = cat['name']
-                    if 'objects' in nw.json().keys() and 'literals' in nw.json().keys():
-                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals',
-                                           nw.json()['literals']])
-                    if 'objects' in nw.json().keys() and 'literals' not in nw.json().keys():
-                        returnList.append(
-                            [cat['name'], cat['id'], 'objects', cat['type'], nw.json()['objects'], 'literals', []])
-                    if 'objects' not in nw.json().keys() and 'literals' in nw.json().keys():
-                        returnList.append(
-                            [cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', nw.json()['literals']])
-                    if 'objects' not in nw.json().keys() and 'literals' not in nw.json().keys():
-                        returnList.append([cat['name'], cat['id'], 'objects', cat['type'], [], 'literals', []])
-                else:
-                    print("The url group after", temp, "was not retrieved.")
+                        print("The url group after", temp, "was not retrieved.")
         else:
             print("No URL groups were retrieved.")
         print("Create group returnList: ", returnList)
