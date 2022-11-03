@@ -371,8 +371,8 @@ class FMC(Provider):
                                     'name': rangeName
                                 })
 
-        print("GroupDict: ", groupDict)
-        print("GroupDesc: ", groupDesc)
+        # print("GroupDict: ", groupDict)
+        # print("GroupDesc: ", groupDesc)
 
         returnList = [groupDict, groupDesc]
 
@@ -482,9 +482,9 @@ class FMC(Provider):
         for group in groupDict[0]:
             if type == 'host' or type == 'fqdn':
                 type = 'network'
-            print("group details: ", groupDict[0], "more: ", groupDict[1])
-            print("Values1: ", groupDict[0].get(group))
-            print("Values2: ", groupDict[1].get(group))
+            # print("group details: ", groupDict[0], "more: ", groupDict[1])
+            # print("Values1: ", groupDict[0].get(group))
+            # print("Values2: ", groupDict[1].get(group))
 
             objGroup = ObjectGroup.GroupObject(self.domainId, group, type, groupDict[0].get(group), self.fmcIP, groupDict[1].get(group))
             flag = True
