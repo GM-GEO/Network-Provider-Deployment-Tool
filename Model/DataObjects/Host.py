@@ -16,7 +16,7 @@ class HostObject:
     overridable = False
 
     def __init__(self, resourceURL, groupMembership, postBody,
-                 queryParameters: Dict):
+                 queryParameters: Dict, groupDescription):
         """
 
         :param resourceURL: The url to be used for making the API call.
@@ -30,10 +30,11 @@ class HostObject:
         self.groupMembership = groupMembership
 
         self.queryParameters = queryParameters
+        self.groupDescription = groupDescription
 
     @classmethod
     def FMCHost(cls, provider: FMC, name: str, value: str, description: str,
-                groupMembership: str):
+                groupMembership: str, groupDescription: str):
         """
         Creates a constructor for adding FMC hosts.
         :param provider: FMC in this case.
@@ -55,7 +56,7 @@ class HostObject:
 
         queryParameters = {}
 
-        return cls(url, groupMembership, objectPostBody, queryParameters)
+        return cls(url, groupMembership, objectPostBody, queryParameters, groupDescription)
 
     @classmethod
     def PaloAltoHost(cls, provider: PaloAlto, name: str, value: str,
@@ -219,6 +220,13 @@ class HostObject:
         :return: Group of the FMC object.
         """
         return self.groupMembership
+
+    def getGroupDescription(self):
+        """
+
+        :return: Description of the group.
+        """
+        return self.groupDescription
 
     def getValue(self):
         """

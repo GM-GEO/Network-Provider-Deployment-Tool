@@ -101,6 +101,7 @@ class FMC(Provider):
                 verify=False
             )
 
+
         #TODO Is there multiple domains on FMC? If so how are we making sure we get the correct one. 
         if response.headers['DOMAIN_UUID']:
             self.domainId = response.headers['DOMAIN_UUID']
@@ -136,7 +137,7 @@ class FMC(Provider):
             self.logger.info("Host Group Found. {Group Name:" + groupName +"}")
         
 
-    def __addHost(self, name: str, value: str, description='', group=''):
+    def __addHost(self, name: str, value: str, description='', group='', groupDescription=''):
         """
         Creates a Host object with the FMC constructor and adds it to the Host Object List
 
@@ -153,12 +154,12 @@ class FMC(Provider):
         #if group:
         #    self.CheckAndAddGroup(group)
         
-        hostObj = Host.HostObject.FMCHost(self, name, value, description, group)
-        print("Host description: ", hostObj.getDescription(), hostObj.getName())
+        hostObj = Host.HostObject.FMCHost(self, name, value, description, group, groupDescription)
+        print("Host description: ", hostObj.getGroupDescription(), hostObj.getGroupMembership())
         # self.logger.info("Host added. {Name: " + name + ", Value: " + group + "}")
         return self.hostObjectList.append(hostObj)
 
-    def __addNetwork(self, name: str, value: str, description='', group=''):
+    def __addNetwork(self, name: str, value: str, description='', group='', groupDescription=''):
         """
         Creates a Network object with the FMC constructor and adds it to the Network Object List.
 
@@ -168,11 +169,12 @@ class FMC(Provider):
         :param group: The name of the Network object group which the network object should be added to.
         :return:  None: The Network object is appended to the Network Object List
         """
-        networkObj = Network.NetworkObject.FMCNetwork(self, name, value, description, group)
+        networkObj = Network.NetworkObject.FMCNetwork(self, name, value, description, group, groupDescription)
+        print("Network description: ", networkObj.getGroupDescription(), networkObj.getGroupMembership())
         self.logger.info("Network added. {Name: " + name + ", Value: " + value + "}")
         return self.networkObjectList.append(networkObj)
 
-    def __addURL(self, name, url, description='', group=''):
+    def __addURL(self, name, url, description='', group='', groupDescription=''):
         """
             Creates a Network object with the FMC constructor and adds it to the URL Object List.
 
@@ -182,11 +184,12 @@ class FMC(Provider):
             :param group: The name of the URL object group in which the URL should be added.
             :return:  None: The URL object is appended to the URL Object list.
         """
-        urlObj = URL.URLObject.FMCUrlObject(self, name, url, description, group)
+        urlObj = URL.URLObject.FMCUrlObject(self, name, url, description, group, groupDescription)
+        print("URL description: ", urlObj.getGroupDescription(), urlObj.getGroupMembership())
         self.logger.info("URL added. {Name: " + name + ", Value: " + url + "}")
         return self.URLObjectList.append(urlObj)
 
-    def __addFQDN(self, name, value, description='', group=''):
+    def __addFQDN(self, name, value, description='', group='', groupDescription=''):
         """
             Creates a FQDN object with the FMC constructor and adds it to the FQDN Object list.
 
@@ -197,24 +200,26 @@ class FMC(Provider):
             :return:  None: The FQDN object is appended to the FQDN Object list.
         """
 
-        fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group)
+        fqdnObj = FQDN.FQDNObject.FMCFQDN(self, name, value, description, group, groupDescription)
+        print("FQDN description: ", fqdnObj.getGroupDescription(), fqdnObj.getGroupMembership())
         self.logger.info("FQDN added. {Name: " + name + ", Value: " + value + "}")
         return self.FQDNObjectList.append(fqdnObj)
 
-    def __addRange(self, name, value, description='', group=''):
+    def __addRange(self, name, value, description='', group='', groupDescription=''):
         #TODO Missing Docstring
-        rangeObj = Range.RangeObject.FMCRange(self, name, value, description, group)
+        rangeObj = Range.RangeObject.FMCRange(self, name, value, description, group, groupDescription)
+        print("Host description: ", rangeObj.getGroupDescription(), rangeObj.getGroupMembership())
         self.logger.info("Range added. {Name: " + name + ", Value: " + value + "}")
         return self.rangeObjectList.append(rangeObj)
 
-    def __addTCP(self, name, value, description='', group=''):
+    def __addTCP(self, name, value, description='', group='', groupDescription=''):
         #TODO Missing Docstring
 
         tcpObj = TCP.TCPObject.FMCTCP(self, name, value, description)
         self.logger.info("TCP added. {Name: " + name + ", Value: " + value + "}")
         return self.tcpObjectList.append(tcpObj)
 
-    def __addUDP(self, name, value, description='', group=''):
+    def __addUDP(self, name, value, description='', group='', groupDescription=''):
         #TODO Missing Docstring
 
         udpObj = UDP.UDPObject.FMCUDP(self, name, value, description, group)
@@ -232,6 +237,7 @@ class FMC(Provider):
         :return: The dictionary containing all the group names and their constituent objects. (Where do objects come from? Elaborate.)
         """
         groupDict = {}
+        groupDesc = {}
         if type == 'url':
             for url in self.URLObjectList:
                 for i in self.allUrlObjectList:
@@ -240,11 +246,15 @@ class FMC(Provider):
                         urlID = i[1]
 
                         groupName = url.getGroupMembership()
+                        urlGroupDescription = url.getGroupDescription()
 
                         for j in groupName:
 
                             if j not in groupDict:
                                 groupDict[j] = []
+                                groupDesc[j] = ''
+                                groupDesc[j] = urlGroupDescription
+                                # groupDict['description'] = urlGroupDescription
                                 groupDict[j].append({
                                     'type': 'Url',
                                     'id': urlID,
@@ -265,11 +275,14 @@ class FMC(Provider):
                         networkName = network.getName()
                         networkID = i[1]
                         groupName = network.getGroupMembership()
+                        networkGroupDescription = network.getGroupDescription()
 
                         for j in groupName:
 
                             if j not in groupDict:
                                 groupDict[j] = []
+                                groupDesc[j] = networkGroupDescription
+                                # groupDict['description'] = networkGroupDescription
                                 groupDict[j].append({
                                     'type': 'Network',
                                     'id': networkID,
@@ -288,10 +301,13 @@ class FMC(Provider):
                         fqdnName = fqdn.getName()
                         fqdnID = i[1]
                         groupName = fqdn.getGroupMembership()
+                        fqdnGroupDescription = fqdn.getGroupDescription()
                         for j in groupName:
 
                             if j not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
                                 groupDict[j] = []
+                                groupDesc[j] = fqdnGroupDescription
+                                # groupDict['description'] = fqdnGroupDescription
                                 groupDict[j].append({
                                     'type': 'fqdn',
                                     'id': fqdnID,
@@ -310,10 +326,13 @@ class FMC(Provider):
                         hostName = host.getName()
                         hostID = i[1]
                         groupName = host.getGroupMembership()
+                        hostGroupDescription = host.getGroupDescription()
                         for j in groupName:
 
                             if j not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
                                 groupDict[j] = []
+                                groupDesc[j] = hostGroupDescription
+                                # groupDict['description'] = hostGroupDescription
                                 groupDict[j].append({
                                     'type': 'Host',
                                     'id': hostID,
@@ -333,10 +352,13 @@ class FMC(Provider):
                         rangeName = range.getName()
                         rangeID = i[1]
                         groupName = range.getGroupMembership()
+                        rangeGroupDescription = range.getGroupDescription()
                         for j in groupName:
 
                             if j not in groupDict:  # If group name is not in the dictionary then we add the group name and associate an empty list with the group and append the values in it
                                 groupDict[j] = []
+                                groupDesc[j] = rangeGroupDescription
+                                # groupDict['description'] = rangeGroupDescription
                                 groupDict[j].append({
                                     'type': 'Host',
                                     'id': rangeID,
@@ -349,8 +371,13 @@ class FMC(Provider):
                                     'name': rangeName
                                 })
 
+        print("GroupDict: ", groupDict)
+        print("GroupDesc: ", groupDesc)
 
-        return groupDict
+        returnList = [groupDict, groupDesc]
+
+
+        return returnList
 
     def deleteGroup(self, id, type):
         """
@@ -452,11 +479,14 @@ class FMC(Provider):
         groupDict = self.createGroupMembershipLists(type)
         temp = []
 
-        for group in groupDict:
+        for group in groupDict[0]:
             if type == 'host' or type == 'fqdn':
                 type = 'network'
+            print("group details: ", groupDict[0], "more: ", groupDict[1])
+            print("Values1: ", groupDict[0].get(group))
+            print("Values2: ", groupDict[1].get(group))
 
-            objGroup = ObjectGroup.GroupObject(self.domainId, group, type, groupDict[group], self.fmcIP)
+            objGroup = ObjectGroup.GroupObject(self.domainId, group, type, groupDict[0].get(group), self.fmcIP, groupDict[1].get(group))
             flag = True
 
             for i in self.allGroupsList:
@@ -465,9 +495,9 @@ class FMC(Provider):
                           "already exists. Making a PUT request.")
                     temp_body = [i[4], i[6]]
                    
-                    postBody = self.mergeDict(groupDict[group], temp_body)
+                    postBody = self.mergeDict(groupDict[0][group], temp_body)
 
-                    put_object = ObjectGroup.GroupObject(self.domainId, group, type, postBody, self.fmcIP)
+                    put_object = ObjectGroup.GroupObject(self.domainId, group, type, postBody, self.fmcIP, '')
                     put_object.modifyGroup(self.authHeader, i[1])
                     temp.append([objGroup.getName(), i[1], 'objects', type+'Group', postBody[0], 'literals', postBody[1]])
                     self.allGroupsList.remove(i)
@@ -478,7 +508,7 @@ class FMC(Provider):
                     result = objGroup.createGroup(self.authHeader)
                     # print("Making group: ", result)
                     if int(result) < 299:
-                        temp.append([objGroup.getName(), objGroup.getUUID(), 'objects', objGroup.getGroupMembership()+'Group', groupDict[group], 'literals', []])
+                        temp.append([objGroup.getName(), objGroup.getUUID(), 'objects', objGroup.getGroupMembership()+'Group', groupDict[0][group], 'literals', []])
                         # print("New group: ", temp)
                         # print("Successfully created")
                         pass
@@ -503,7 +533,7 @@ class FMC(Provider):
             else:
                 return False
 
-    def addObject(self, domain, type, name, value, description='', group=''):
+    def addObject(self, domain, type, name, value, description='', group='', groupDescription=''):
         """
         Adds the creation of Python objects and their addition in the respective object lists.
         :param domain: The domain UUID
@@ -516,25 +546,25 @@ class FMC(Provider):
         """
 
         if type == 'host':
-            self.__addHost(name, value, description, group)
+            self.__addHost(name, value, description, group, groupDescription)
 
         elif type == 'network':
-            self.__addNetwork(name, value, description, group)
+            self.__addNetwork(name, value, description, group, groupDescription)
 
         elif type == 'url':
-            self.__addURL(name, value, description, group)
+            self.__addURL(name, value, description, group, groupDescription)
 
         elif type == 'fqdn':
-            self.__addFQDN(name, value, description, group)
+            self.__addFQDN(name, value, description, group, groupDescription)
 
         elif type == 'range':
-            self.__addRange(name, value, description, group)
+            self.__addRange(name, value, description, group, groupDescription)
 
         elif type == 'TCP':
-            self.__addTCP(name, value, description, group)
+            self.__addTCP(name, value, description, group, groupDescription)
 
         elif type == 'UDP':
-            self.__addUDP(name, value, description, group)
+            self.__addUDP(name, value, description, group, groupDescription)
 
         else:
             return "Object type not configured"

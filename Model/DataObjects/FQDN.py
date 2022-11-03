@@ -10,7 +10,7 @@ from Model.Utilities.LoggingUtils import Logger_GetLogger
 class FQDNObject:
 
     def __init__(self, resourceUrl, groupMembership, postBody,
-                 queryParameters: Dict):
+                 queryParameters: Dict, groupDescription):
 
         self.creationURL = resourceUrl
         self.objectPostBody = postBody
@@ -18,9 +18,10 @@ class FQDNObject:
         self.groupMembership = groupMembership
 
         self.queryParameters = queryParameters
+        self.groupDescription = groupDescription
 
     @classmethod
-    def FMCFQDN(cls, provider: FMC, name, value, description, groupMembership):
+    def FMCFQDN(cls, provider: FMC, name, value, description, groupMembership, groupDescription):
 
         objectPostBody = {}
         objectPostBody['name'] = name
@@ -32,7 +33,8 @@ class FQDNObject:
                                   provider.domainId, provider.fqdnLocation)
         
         queryParameters = {}
-        return cls(url, groupMembership, objectPostBody, queryParameters)
+
+        return cls(url, groupMembership, objectPostBody, queryParameters, groupDescription)
 
     @classmethod
     def PaloAltoFQDN(cls, provider: PaloAlto, name, value, description,
@@ -103,6 +105,9 @@ class FQDNObject:
 
     def getGroupMembership(self):
         return self.groupMembership
+
+    def getGroupDescription(self):
+        return self.groupDescription
 
     def getType(self):
         return self.objectPostBody['type']

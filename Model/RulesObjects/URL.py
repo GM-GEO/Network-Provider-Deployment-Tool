@@ -10,7 +10,7 @@ from Model.Utilities.LoggingUtils import Logger_GetLogger
 class URLObject:
 
     def __init__(self, resourceUrl, groupMembership, postBody,
-                 queryParameters: Dict):
+                 queryParameters: Dict, groupDescription):
 
         self.creationURL = resourceUrl
         self.objectPostBody = postBody
@@ -18,10 +18,11 @@ class URLObject:
         self.groupMembership = groupMembership
 
         self.queryParameters = queryParameters
+        self.groupDescription = groupDescription
 
     @classmethod
     def FMCUrlObject(cls, provider: FMC, name, value, description,
-                     groupMembership):
+                     groupMembership, groupDescription):
 
         objectPostBody = {}
         objectPostBody['name'] = name
@@ -33,7 +34,7 @@ class URLObject:
                                   provider.domainId, provider.urlLocation)
         
         queryParameters = {}
-        return cls(url, groupMembership, objectPostBody, queryParameters)
+        return cls(url, groupMembership, objectPostBody, queryParameters, groupDescription)
 
     @classmethod
     def PaloAltoUrlObject(cls, provider: PaloAlto, name, value, description,
@@ -118,3 +119,6 @@ class URLObject:
 
     def getGroupMembership(self):
         return self.groupMembership
+
+    def getGroupDescription(self):
+        return self.groupDescription

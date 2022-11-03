@@ -10,7 +10,7 @@ from Model.Utilities.LoggingUtils import Logger_GetLogger
 class RangeObject:
 
     def __init__(self, resourceUrl, groupMembership, postBody,
-                 queryParameters: Dict):
+                 queryParameters: Dict, groupDescription):
 
         self.creationURL = resourceUrl
         self.objectPostBody = postBody
@@ -18,9 +18,10 @@ class RangeObject:
         self.groupMembership = groupMembership
 
         self.queryParameters = queryParameters
+        self.groupDescription = groupDescription
 
     @classmethod
-    def FMCRange(cls, provider: FMC, name, value, description, groupMembership):
+    def FMCRange(cls, provider: FMC, name, value, description, groupMembership, groupDescription):
 
         objectPostBody = {}
         objectPostBody['name'] = name
@@ -32,7 +33,7 @@ class RangeObject:
                                   provider.domainId, provider.rangeLocation)
 
         queryParameters = {}
-        return cls(url, groupMembership, objectPostBody, queryParameters)
+        return cls(url, groupMembership, objectPostBody, queryParameters, groupDescription)
 
     # @classmethod
     # def PaloAltoRange(cls, provider: PaloAlto, name, value, description,
@@ -102,6 +103,9 @@ class RangeObject:
 
     def getGroupMembership(self):
         return self.groupMembership
+
+    def getGroupDescription(self):
+        return self.groupDescription
 
     def getType(self):
         return self.objectPostBody['type']

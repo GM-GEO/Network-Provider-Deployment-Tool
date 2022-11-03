@@ -11,7 +11,7 @@ from Model.Providers.FMCConfig import FMC
 
 class GroupObject:
 
-    def __init__(self, domainUUID, name, groupType, groupMemberIDList, ip):
+    def __init__(self, domainUUID, name, groupType, groupMemberIDList, ip, groupDescription):
         """
 
         :param domainUUID:
@@ -30,10 +30,12 @@ class GroupObject:
         self.groupType = groupType
         print(self.groupType)
         self.memberList = groupMemberIDList
+        self.groupDescription = groupDescription
 
         self.postBody = {}
         self.postBody['name'] = self.name
         self.postBody['objects'] = self.memberList
+        self.postBody['description'] = self.groupDescription
 
         if groupType == 'url':
             self.postBody['type'] = "UrlGroup"
@@ -69,7 +71,7 @@ class GroupObject:
         if response.status_code <= 299 and response.status_code >= 200:
             self.groupUUID = response.json()['id']
             logger.info("Group created successfully. {" + self.groupUUID + "}")
-        # print(response.json()['error']['messages'][0]['description'])
+        print("Group creation: ", response.json())
 
         return response.status_code
 
@@ -94,6 +96,8 @@ class GroupObject:
         postBody['objects'] = self.memberList[0]
         if self.memberList[1] != []:
             postBody['literals'] = self.memberList[1]
+
+        postBody['description'] = self.groupDescription
 
         if self.groupType == 'url':
             postBody['type'] = "UrlGroup"
@@ -128,6 +132,8 @@ class GroupObject:
         :return: ID of the object group
         """
         return self.groupUUID
+
+
 
     def getGroupMembership(self):
         return self.groupType

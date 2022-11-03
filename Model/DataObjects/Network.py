@@ -14,7 +14,7 @@ class NetworkObject:
     overridable = False
 
     def __init__(self, resourceURL, groupMembership, postBody,
-                 queryParameters: Dict):
+                 queryParameters: Dict, groupDescription):
         """
 
         :param resourceURL:
@@ -29,10 +29,11 @@ class NetworkObject:
         self.groupMembership = groupMembership
 
         self.queryParameters = queryParameters
+        self.groupDescription = groupDescription
 
     @classmethod
     def FMCNetwork(cls, provider: FMC, name, value, description,
-                   groupMembership):
+                   groupMembership, groupDescription):
         """
         Constructor for FMC Network object.
         :param provider: FMC in this case
@@ -54,7 +55,7 @@ class NetworkObject:
                                   provider.domainId, provider.networkLocation)
 
         queryParameters = {}
-        return cls(url, groupMembership, objectPostBody, queryParameters)
+        return cls(url, groupMembership, objectPostBody, queryParameters, groupDescription)
 
     @classmethod
     def PaloAltoNetwork(cls, provider: PaloAlto, name, value, description,
@@ -145,3 +146,6 @@ class NetworkObject:
 
     def getGroupMembership(self):
         return self.groupMembership
+
+    def getGroupDescription(self):
+        return self.groupDescription

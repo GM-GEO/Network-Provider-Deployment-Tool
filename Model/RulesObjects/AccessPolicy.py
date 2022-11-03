@@ -391,7 +391,6 @@ class AccessPolicyObject:
             logger.info("Policy creation successful. {Policy Id:" +
                         self.objectUUID + "}")
 
-        print(response.content)
         if response.content:
 
             print("Response rule creation: ", response.json())
